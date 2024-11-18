@@ -1,3 +1,7 @@
+info
+
 node_modules
-SPG.drawio
-SPG.drawio.png
+.parcel-cache
+.vscode
+dev-data
+*.env
