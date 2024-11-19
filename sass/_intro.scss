@@ -1,0 +1,42 @@
+.intro {
+  margin-top: 5rem;
+
+  display: flex;
+  flex-direction: column;
+
+  gap: 1rem;
+
+  &__input {
+    display: grid;
+    grid-template-columns: 9rem 15rem;
+    gap: 1rem;
+
+    justify-content: center;
+    align-items: center;
+
+    text-align: right;
+  }
+
+  &__label {
+    font-size: 1.8rem;
+  }
+
+  &__submit {
+    display: grid;
+    grid-template-columns: 20rem 20rem;
+    gap: 1rem;
+
+    justify-content: center;
+    align-items: center;
+  }
+}
+
+.btn {
+  margin-top: 4rem;
+  align-self: center;
+  border: none;
+  background-color: transparent;
+  text-transform: uppercase;
+  padding: 5rem 0;
+  box-shadow: 0 0.5rem 1rem rgba(#000, 0.2);
+}

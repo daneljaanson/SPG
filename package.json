@@ -11,10 +11,12 @@
   "author": "D. Jaanson",
   "license": "ISC",
   "dependencies": {
+    "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "express": "^4.21.1",
     "pug": "^3.0.3",
-    "sass": "^1.81.0"
+    "sass": "^1.81.0",
+    "xss-clean": "^0.1.4"
   },
   "devDependencies": {
     "eslint": "^9.15.0",

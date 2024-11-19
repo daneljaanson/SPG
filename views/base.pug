@@ -1,29 +1,44 @@
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="stylesheet" href="/css/style.css" />
-    <title>SDG</title>
-  </head>
-  <body>
-    <main class="game-window">
-        <div class="container container--intro">
-            h1(class="heading-primary")= data
-            <button class="btn">Create room</button>
-        </div>
-        <div class="container container--game">
-            <h2 class="heading-secondary">Game screen</h1>
-            </div>
-            <div class="container container--round-end">
-                <h2 class="heading-secondary">Round end screen</h2>
-                <button class="btn">Next game</button>
-            </div>
-            <div class="container container--game-end">
-                <h2 class="heading-secondary">Game end</h2>
-                <button class="btn">New game</button>
-            </div>
-        </main>
-    <script src='./js/index.js'></script>   
-  </body>
-</html>
+doctype html
+
+html(lang="en")
+  head
+    meta(charset="UTF-8")
+    meta(name="viewport" content="width=device-width, initial-scale=1.0")
+    link(rel="stylesheet" href="/css/style.css")
+    script(src='./js/FOUC_FIX.js')
+    title SDG
+  body
+    main.game-window
+        div.container.container--intro
+            h1.heading-primary= data
+            form.intro(action="" method="post") 
+              div.intro__input
+                label.intro__label Name
+                input(type="text" name="name" id="name" required)
+              div.intro__input
+                label.intro__label Room code
+                input(type="text" name="code" id="code")
+              div.intro__submit
+                input.btn.btn--create-room(type="submit" value="Create") 
+                input.btn.btn--join-room(type="submit" value="Join") 
+
+        div.container.container--room
+            h2.heading-secondary Room
+            div.lds-ellipsis
+              div
+              div
+              div
+              div
+
+        div.container.container--game
+            h2.heading-secondary Game screen
+
+        div.container.container--round-end
+            h2.heading-secondary Round end screen
+            button.btn Next game
+
+        div.container.container--game-end
+            h2.heading-secondary Game end
+            button.btn New game
+
+    script(src='./js/index.js' type="module")

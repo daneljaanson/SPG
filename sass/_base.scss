@@ -1,0 +1,55 @@
+*,
+*::before,
+*::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: inherit;
+}
+
+html {
+  font-size: 62.5%;
+}
+
+body {
+  box-sizing: border-box;
+}
+
+.heading-primary {
+  font-size: 10rem;
+}
+
+.heading-secondary {
+  font-size: 10rem;
+}
+
+.game-window {
+  height: calc(100vh - 20rem);
+
+  //   overflow: hidden;
+  position: relative;
+}
+
+.container {
+  padding-top: 10rem;
+  width: 100%;
+  text-align: center;
+  position: absolute;
+
+  transition: all 1.5s cubic-bezier(0.83, 0, 0.17, 1);
+
+  &--intro {
+    transform: translateX(0);
+  }
+  &--room {
+    transform: translateX(100%);
+  }
+  &--game {
+    transform: translateX(100%);
+  }
+  &--round-end {
+    transform: translateX(100%);
+  }
+  &--game-end {
+    transform: translateX(100%);
+  }
+}
