@@ -3,6 +3,7 @@ const cors = require("cors");
 const xss = require("xss-clean");
 const gameRouter = require("./routes/gameRouter");
 const path = require("path");
+const morgan = require("morgan");
 
 const app = express();
 

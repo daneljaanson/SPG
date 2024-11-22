@@ -9,35 +9,49 @@ html(lang="en")
     title SDG
   body
     main.game-window
-        div.container.container--intro
+        .container.container--intro
+          .container-inner
             h1.heading-primary= data
             form.intro(action="" method="post") 
-              div.intro__input
+              .intro__input
                 label.intro__label Name
                 input(type="text" name="name" id="name" required)
-              div.intro__input
+              .intro__input
                 label.intro__label Room code
                 input(type="text" name="code" id="code")
-              div.intro__submit
+              .intro__submit
                 input.btn.btn--create-room(type="submit" value="Create") 
                 input.btn.btn--join-room(type="submit" value="Join") 
 
-        div.container.container--room
+        .container.container--room
+          .container-inner
             h2.heading-secondary Room
-            div.lds-ellipsis
-              div
-              div
-              div
-              div
+            .lds-ellipsis-container
+                .lds-ellipsis
+                    div
+                    div
+                    div
+                    div
+            .room 
+              label.room__code-label Room code:
+              label.room__code
+              label.room__players-label Players:
+              ul.room__player-list
+              input.btn.btn--start-game(type="button" value="Start game") 
+        
 
-        div.container.container--game
+
+        .container.container--game
+          .container-inner
             h2.heading-secondary Game screen
 
-        div.container.container--round-end
+        .container.container--round-end
+          .container-inner
             h2.heading-secondary Round end screen
             button.btn Next game
 
-        div.container.container--game-end
+        .container.container--game-end
+          .container-inner
             h2.heading-secondary Game end
             button.btn New game
 

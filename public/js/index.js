@@ -1,10 +1,11 @@
 "use strict";
 
-import { createRoom } from "./lobby.js";
+import { createRoom, startGame } from "./lobby.js";
 
 // Buttons
-const startBtn = document.querySelector(".btn--create-room");
+const createBtn = document.querySelector(".btn--create-room");
 const joinBtn = document.querySelector(".btn--join-room");
+const startBtn = document.querySelector(".btn--start-game");
 
 //Inputs
 const nameInput = document.querySelector("#name");
@@ -14,7 +15,7 @@ const codeInput = document.querySelector("#code");
 /// INTRO
 
 // Start game button handler
-startBtn.addEventListener("click", (e) => {
+createBtn.addEventListener("click", (e) => {
   if (nameInput.value) {
     createRoom();
   }
@@ -29,6 +30,12 @@ joinBtn.addEventListener("click", (e) => {
 
 //////////////////////////////////////////////////////////////
 /// ROOM
+
+startBtn.addEventListener("click", (e) => {
+  if (nameInput.value && codeInput.value) {
+    startGame();
+  }
+});
 
 //////////////////////////////////////////////////////////////
 /// GAME

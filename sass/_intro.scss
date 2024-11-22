@@ -22,21 +22,11 @@
   }
 
   &__submit {
-    display: grid;
-    grid-template-columns: 20rem 20rem;
+    display: flex;
+
     gap: 1rem;
 
     justify-content: center;
     align-items: center;
   }
-}
-
-.btn {
-  margin-top: 4rem;
-  align-self: center;
-  border: none;
-  background-color: transparent;
-  text-transform: uppercase;
-  padding: 5rem 0;
-  box-shadow: 0 0.5rem 1rem rgba(#000, 0.2);
 }

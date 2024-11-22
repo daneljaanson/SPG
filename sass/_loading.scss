@@ -1,3 +1,13 @@
+.lds-ellipsis-container {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+
+  opacity: 1;
+  transition: all var(--scroll-time) 1s;
+}
+
 .lds-ellipsis,
 .lds-ellipsis div {
   box-sizing: border-box;

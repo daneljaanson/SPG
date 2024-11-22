@@ -1,14 +1,18 @@
 const express = require("express");
 const gameController = require("../controllers/gameController");
 const viewController = require("../controllers/viewController");
-const secController = require("../controllers/secController");
 
 const router = express.Router();
 
-router
-  .route("/")
-  .get(viewController.intro)
-  .post(secController.protect, gameController.newRoom);
-router.route("/:code").post(secController.protect, gameController.joinRoom);
+// intro
+router.route("/").get(viewController.intro).post(gameController.newRoom);
+router.route("/:code").post(gameController.joinRoom);
+
+//lobby
+router.route("/lobbySSE").get(gameController.lobbySSE);
+
+//game
+// router.route("/drawerSSE").get(gameController.drawerSSE);
+// router.route("/guesserSSE").get(gameController.guesserSSE);
 
 module.exports = router;
