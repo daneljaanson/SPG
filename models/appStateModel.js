@@ -1,5 +1,6 @@
 "use strict";
 
+// Games object keys are room codes
 const games = {};
 
 //TODO

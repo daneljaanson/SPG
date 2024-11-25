@@ -5,11 +5,11 @@ const viewController = require("../controllers/viewController");
 const router = express.Router();
 
 // intro
-router.route("/").get(viewController.intro).post(gameController.newRoom);
+router.route("/").get(viewController.intro).post(gameController.joinRoom);
 router.route("/:code").post(gameController.joinRoom);
 
 //lobby
-router.route("/lobbySSE").get(gameController.lobbySSE);
+router.route("/lobbySSE/:code/:playerId").get(gameController.lobbySSE);
 
 //game
 // router.route("/drawerSSE").get(gameController.drawerSSE);

@@ -34,9 +34,6 @@ introForm.addEventListener("submit", (e) => {
 
 // Disable button, move to room screen, send request
 export const createRoom = async function (code = "") {
-  // Disable button to prevent double clicks
-  createBtn.disabled = true;
-  joinBtn.disabled = true;
   // Move to the room screen
   introScreen.style.transform = "translateX(-100%)";
   roomScreen.style.transform = "translateX(0)";
@@ -58,17 +55,13 @@ export const createRoom = async function (code = "") {
 
   if (response.status !== 201 && response.status !== 200)
     return "error", response;
-  const json = await response.json();
-  const Room = json.data.Room;
-  const Player = json.data.Player;
+
   //////////////////////////////////
+  // Get room and player states
+  const json = await response.json();
+
   // Add room key to HTML
-  codeLabel.textContent = Room.roomKey;
-  // Add players to HTML
-  Object.values(Room.players).forEach((player) => {
-    console.log(player);
-    playerList.innerHTML += `<li>${player.name}</li>`;
-  });
+  codeLabel.textContent = json.data.roomKey;
 
   // Hide loader
   loader.style.opacity = 0;
@@ -81,12 +74,20 @@ export const createRoom = async function (code = "") {
   lobbyContainer.style.userSelect = "auto";
 
   //////////////////////////////////
+  // Establish SSE connection
   // Actively update player count
-  const eventSource = new EventSource(`/lobbySSE`);
+  // Send room code and player id
+  const eventSource = new EventSource(
+    `/lobbySSE/${json.data.roomKey}/${json.data.id}`
+  );
 
   eventSource.onmessage = (event) => {
-    const data = JSON.parse(event.data);
-    playerList.innerHTML += `<li>${data.data}</li>`;
+    playerList.innerHTML = "";
+    const playerNames = JSON.parse(event.data).data;
+    // Add player name to ul
+    playerNames.forEach((name) => {
+      playerList.innerHTML += `<li>${name}</li>`;
+    });
   };
 
   eventSource.onerror = (error) => {
@@ -96,4 +97,3 @@ export const createRoom = async function (code = "") {
 };
 
 export const startGame = () => {};
-//TODO
