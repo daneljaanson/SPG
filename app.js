@@ -4,6 +4,7 @@ const xss = require("xss-clean");
 const gameRouter = require("./routes/gameRouter");
 const path = require("path");
 const morgan = require("morgan");
+const cookieParser = require("cookie-parser");
 
 const app = express();
 
@@ -26,6 +27,7 @@ if (process.env.NODE_ENV === "development") app.use(morgan("dev"));
 //BODY AVAILABLE IN REQ.BODY
 app.use(express.json({ limit: "10kb" }));
 app.use(express.json({ extended: true, limit: "10kb" }));
+app.use(cookieParser());
 
 //SET STATIC FOLDER
 app.use(express.static(path.join(__dirname, "public")));

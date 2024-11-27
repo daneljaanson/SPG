@@ -1,16 +1,28 @@
 "use strict";
 
 const AppState = require("./appStateModel");
+const EventEmitter = require("events");
 
-const _sendPlayerUpdate = () => {};
+////////////////////////
+// Emit functions
 
+////////////////////////
+// Game state
 class GameState {
   constructor() {
     // Players object keys are player IDs (player.id)
     this.players = {};
+    this.lobbySSEResponses = {};
+    this.gameSSEResponses = {};
     this.gameState = "lobby";
     // add room to rooms list and get key
     this.roomKey = AppState.newRoom(this);
+
+    // Emitter for game events
+    this.gameEmitter = new EventEmitter();
+
+    // On game start, send event to all players
+    // this.gameEmitter.on("gameStart", () => emitterController.sendStart());
   }
 
   addPlayer(Player) {
@@ -23,11 +35,26 @@ class GameState {
   // Make list of player names
   getPlayerList() {
     const playerList = Object.values(this.players).map((playerObj) => {
-      // console.log(playerObj.name);
       return playerObj.name;
     });
-    // console.log(playerList);
     return playerList;
+  }
+
+  writeLobby(status, data = "") {
+    Object.values(this.lobbySSEResponses).forEach((playerRes) => {
+      playerRes.write(
+        `data: ${JSON.stringify({
+          status,
+          data,
+        })}\n\n`
+      );
+    });
+  }
+
+  closeLobby() {
+    Object.values(this.lobbySSEResponses).forEach((playerRes) => {
+      playerRes.end();
+    });
   }
 }
 

@@ -1,6 +1,8 @@
 "use strict";
 
-import { createRoom, startGame } from "./lobby.js";
+import { createRoom } from "./lobby.js";
+import { lobbySource } from "./eventSources.js";
+import { startGame, buildGameHtml } from "./game.js";
 
 // Buttons
 const createBtn = document.querySelector(".btn--create-room");
@@ -15,16 +17,18 @@ const codeInput = document.querySelector("#code");
 /// INTRO
 
 // Start game button handler
-createBtn.addEventListener("click", (e) => {
+createBtn.addEventListener("click", async (e) => {
   if (nameInput.value) {
-    createRoom();
+    await createRoom();
+    lobbySource();
   }
 });
 
 // Join game button handler
-joinBtn.addEventListener("click", (e) => {
+joinBtn.addEventListener("click", async (e) => {
   if (nameInput.value && codeInput.value) {
-    createRoom(codeInput.value);
+    await createRoom(codeInput.value);
+    lobbySource();
   }
 });
 
@@ -32,13 +36,13 @@ joinBtn.addEventListener("click", (e) => {
 /// ROOM
 
 startBtn.addEventListener("click", (e) => {
-  if (nameInput.value && codeInput.value) {
-    startGame();
-  }
+  startGame();
 });
 
 //////////////////////////////////////////////////////////////
 /// GAME
+
+buildGameHtml();
 
 //////////////////////////////////////////////////////////////
 /// ROUND-END
