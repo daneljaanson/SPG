@@ -65,6 +65,7 @@ export const gameSource = function () {
       role = data.role;
       // Display everything per role
       if (role === "drawer") {
+        //drawer code
         return;
       }
       //TODO

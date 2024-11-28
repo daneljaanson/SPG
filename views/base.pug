@@ -43,8 +43,32 @@ html(lang="en")
 
         .container.container--game
           .container-inner
-            h2.heading-secondary Game screen
-            label.game__role
+            .game
+              .drwScreen
+                .drwScreen__tools
+                  .drwScreen__tool.drwScreen__tool--medium
+                    span.tool-icon.tool-icon--medium &nbsp;
+                  .drwScreen__tool.drwScreen__tool--big
+                    span.tool-icon.tool-icon--big &nbsp;
+                .drwScreen__picture
+                  label.drwScreen__picture--role Drawista
+                .drwScreen__colors
+                  .drwScreen__color.drwScreen__color--white &nbsp;
+                  .drwScreen__color.drwScreen__color--black &nbsp;
+              .game__info
+                .game__info--info-box 
+                  p.game__info--info-text You gotta know this!
+                .game__info--players
+                  ul.game__info--player-list
+                    li exampleplayer
+                    li exampleplayer2
+                .game__info--comments
+                  ul.game__info--comment-list
+                    li.game__info--comment Good game five stars good job!
+                .game__info--input-box 
+                  input.game__info--input
+                  button.game__info--btn
+
 
         .container.container--round-end
           .container-inner

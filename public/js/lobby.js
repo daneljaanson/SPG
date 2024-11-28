@@ -42,7 +42,7 @@ export const createRoom = async function (code = "") {
     return "error", response;
 
   //////////////////////////////////
-  // Get room and player states
+  // Show room code and display lobby
   const json = await response.json();
 
   // Add room key to HTML

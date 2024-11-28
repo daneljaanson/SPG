@@ -51,11 +51,11 @@ class GameState {
     });
   }
 
-  closeLobby() {
-    Object.values(this.lobbySSEResponses).forEach((playerRes) => {
-      playerRes.end();
-    });
-  }
+  // closeLobby() {
+  //   Object.values(this.lobbySSEResponses).forEach((playerRes) => {
+  //     playerRes.end();
+  //   });
+  // }
 }
 
 module.exports = GameState;

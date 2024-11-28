@@ -111,7 +111,7 @@ exports.lobbySSE = async (req, res) => {
   Room.writeLobby("open", playerList);
 
   req.on("close", () => {
-    Room.closeLobby();
+    res.end();
   });
 };
 
@@ -133,6 +133,34 @@ exports.gameSSE = async (req, res) => {
     "Cache-Control": "no-cache",
     Connection: "keep-alive",
   });
+
+  const [playerId, Room] = await solveToken(req);
+  Room.gameSSEResponses[playerId] = res;
+
+  // Send initial state command
+  data = {
+    status: "init",
+    data: "",
+  };
+  res.write(`data: ${JSON.stringify(data)}\n\n`);
+
+  // if (data.status === "init") {
+  //   // Move to game screen
+  //   roomScreen.style.transform = "translateX(-100%)";
+  //   gameScreen.style.transform = "translateX(0)";
+  // } else if ((data.status = "round-start")) {
+  //   // Assign role
+  //   role = data.role;
+  //   // Display everything per role
+  //   if (role === "drawer") {
+  //     //drawer code
+  //     return;
+  //   }
+  //   //TODO
+  // } else if ((data.status = "round-end")) {
+  //   //TODO
+  // } else if ((data.status = "game-end")) {
+  // }
   //TODO On Start button, Close all current SSE responses (in lobby)
   //TODO Add every player's res to list
   // const playerId = req.params.playerId;
@@ -145,6 +173,10 @@ exports.gameSSE = async (req, res) => {
   // const Room = AppStateModel.getRoom(code);
   // // remove player when the client disconnects
   // req.on("close", () => {});
+
+  req.on("close", () => {
+    res.end();
+  });
 };
 
 //
