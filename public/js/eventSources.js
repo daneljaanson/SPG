@@ -5,15 +5,17 @@ const gameScreen = document.querySelector(".container--game");
 
 // Lists
 const playerListEl = document.querySelector(".room__player-list");
+const commentListEl = document.querySelector(".game__info--comment-list");
 
 // Labels
 const roleLabel = document.querySelector(".game__role");
 
 ("use strict");
 
-export const lobbySource = function () {
+export const initSource = function () {
   // Actively update player count
   // Send room code and player id
+
   const eventSource = new EventSource(`/lobbySSE/`);
 
   eventSource.onmessage = (event) => {
@@ -32,7 +34,7 @@ export const lobbySource = function () {
       introScreen.style.transform = "translateX(-100%)";
       roomScreen.style.transform = "translateX(0)";
     } else if (data.status === "start") {
-      const gameEventSource = gameSource();
+      const gameEventSource = gameSources();
       return setTimeout(() => {
         eventSource.close();
         console.log("lobby source closed");
@@ -46,37 +48,48 @@ export const lobbySource = function () {
   };
 };
 
-export const gameSource = function () {
-  const eventSource = new EventSource(`/gameSSE/`);
+const gameSources = function () {
+  const eventSorucePicture = pictureSource();
+  const eventSoruceComment = commentSource();
+
+  // Move to game screen
+  roomScreen.style.transform = "translateX(-100%)";
+  gameScreen.style.transform = "translateX(0)";
+};
+
+// Display new coordinates
+const pictureSource = () => {
+  const eventSource = new EventSource(`/pictureSSE/`);
 
   eventSource.onmessage = (event) => {
     const data = JSON.parse(event.data);
-    console.log("lobby status", data.status);
-
-    let role;
-    // TODO Guesser receives coordinates every moment
-    // TODO Drawer draws bunches of coordinates that get assembled into a drawing
-    if (data.status === "init") {
-      // Move to game screen
-      roomScreen.style.transform = "translateX(-100%)";
-      gameScreen.style.transform = "translateX(0)";
-    } else if ((data.status = "round-start")) {
-      // Assign role
-      role = data.role;
-      // Display everything per role
-      if (role === "drawer") {
-        //drawer code
-        return;
-      }
-      //TODO
-    } else if ((data.status = "round-end")) {
-      //TODO
-    } else if ((data.status = "game-end")) {
-    }
+    console.log("new coord", data.newcoord);
+    // TODO display coords
   };
 
   eventSource.onerror = (error) => {
-    console.log("Game SSE error", error);
+    console.log("Picture SSE error", error);
     eventSource.close();
   };
+  return eventSource;
+};
+
+// Display new comments
+const commentSource = () => {
+  const eventSource = new EventSource(`/commentSSE/`);
+
+  eventSource.onmessage = (event) => {
+    const data = JSON.parse(event.data);
+    // Add new comment to ul
+    const commenterName = data.name ? `<strong>${data.name}:</strong>` : "";
+    commentListEl.innerHTML += `<li>${commenterName} ${data.comment}</li>`;
+    commentListEl.lastChild.scrollIntoView({ behavior: "smooth" });
+    // commentListEl.scrollTop = commentListEl.scrollHeight;
+  };
+
+  eventSource.onerror = (error) => {
+    console.log("Comment SSE error", error);
+    eventSource.close();
+  };
+  return eventSource;
 };

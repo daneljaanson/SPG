@@ -44,6 +44,24 @@ const createSendToken = (id, code, req, res) => {
 };
 
 ///////////////////////////
+// SSE
+
+// Decode token
+// Return playerId and Room obj
+const solveToken = async (req) => {
+  // Decode token
+  const token = req.cookies.jwt;
+  const decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET);
+
+  // Assign values
+  const code = decoded.code;
+  const playerId = decoded.id;
+  const Room = AppStateModel.getRoom(code);
+
+  return [playerId, Room];
+};
+
+///////////////////////////
 // Create or join a room
 exports.joinRoom = (req, res) => {
   // create state or get state by key
@@ -68,24 +86,6 @@ exports.joinRoom = (req, res) => {
 
   // send response with cookie to render the lobby
   createSendToken(Player.id, Room.roomKey, req, res);
-};
-
-///////////////////////////
-// SSE
-
-// SSE Helper - Start SSE connection and decode token
-// Return playerId and Room obj
-const solveToken = async (req) => {
-  // Decode token
-  const token = req.cookies.jwt;
-  const decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET);
-
-  // Assign values
-  const code = decoded.code;
-  const playerId = decoded.id;
-  const Room = AppStateModel.getRoom(code);
-
-  return [playerId, Room];
 };
 
 // Automatically show new players in lobby list
@@ -123,10 +123,12 @@ exports.startGame = async (req, res) => {
   Room.writeLobby("start");
   // Change room state
   Room.gameState = "inGame";
+
+  res.status(200).json({ status: "success", data: "game started" });
 };
 
-//
-exports.gameSSE = async (req, res) => {
+// Update picture
+exports.pictureSSE = async (req, res) => {
   // Start connection
   res.writeHead(200, {
     "Content-Type": "text/event-stream",
@@ -135,48 +137,54 @@ exports.gameSSE = async (req, res) => {
   });
 
   const [playerId, Room] = await solveToken(req);
-  Room.gameSSEResponses[playerId] = res;
+  Room.pictureSSEResponses[playerId] = res;
 
   // Send initial state command
   data = {
     status: "init",
-    data: "",
+    data: "picture sse init",
   };
   res.write(`data: ${JSON.stringify(data)}\n\n`);
-
-  // if (data.status === "init") {
-  //   // Move to game screen
-  //   roomScreen.style.transform = "translateX(-100%)";
-  //   gameScreen.style.transform = "translateX(0)";
-  // } else if ((data.status = "round-start")) {
-  //   // Assign role
-  //   role = data.role;
-  //   // Display everything per role
-  //   if (role === "drawer") {
-  //     //drawer code
-  //     return;
-  //   }
-  //   //TODO
-  // } else if ((data.status = "round-end")) {
-  //   //TODO
-  // } else if ((data.status = "game-end")) {
-  // }
-  //TODO On Start button, Close all current SSE responses (in lobby)
-  //TODO Add every player's res to list
-  // const playerId = req.params.playerId;
-  // const code = req.params.code;
-  // res.writeHead(200, {
-  //   "Content-Type": "text/event-stream",
-  //   "Cache-Control": "no-cache",
-  //   Connection: "keep-alive",
-  // });
-  // const Room = AppStateModel.getRoom(code);
-  // // remove player when the client disconnects
-  // req.on("close", () => {});
 
   req.on("close", () => {
     res.end();
   });
 };
 
-//
+// Update comments
+exports.commentSSE = async (req, res) => {
+  // Start connection
+  res.writeHead(200, {
+    "Content-Type": "text/event-stream",
+    "Cache-Control": "no-cache",
+    Connection: "keep-alive",
+  });
+
+  const [playerId, Room] = await solveToken(req);
+  Room.commentSSEResponses[playerId] = res;
+  console.log("comment sse resposne added");
+
+  // Send initial state command
+  data = {
+    comment: "comment SSE init",
+  };
+  setTimeout(() => {
+    res.write(`data: ${JSON.stringify(data)}\n\n`);
+  }, 2000);
+
+  req.on("close", () => {
+    res.end();
+  });
+};
+
+// Send comment update command
+exports.sendComment = async (req, res) => {
+  // Get user and room
+  const [playerId, Room] = await solveToken(req);
+  // Send start signal
+  Room.sendComment(playerId, req.body.comment);
+
+  res
+    .status(200)
+    .json({ status: "success", data: { message: "Comment sent" } });
+};

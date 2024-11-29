@@ -1,17 +1,19 @@
 "use strict";
 
 import { createRoom } from "./lobby.js";
-import { lobbySource } from "./eventSources.js";
-import { startGame, buildGameHtml } from "./game.js";
+import { initSource } from "./eventSources.js";
+import { startGame, sendComment } from "./game.js";
 
 // Buttons
 const createBtn = document.querySelector(".btn--create-room");
 const joinBtn = document.querySelector(".btn--join-room");
 const startBtn = document.querySelector(".btn--start-game");
+const commentBtn = document.querySelector(".game__info--btn");
 
 //Inputs
 const nameInput = document.querySelector("#name");
 const codeInput = document.querySelector("#code");
+const commentInput = document.querySelector("#comment");
 
 //////////////////////////////////////////////////////////////
 /// INTRO
@@ -20,7 +22,7 @@ const codeInput = document.querySelector("#code");
 createBtn.addEventListener("click", async (e) => {
   if (nameInput.value) {
     await createRoom();
-    lobbySource();
+    initSource();
   }
 });
 
@@ -28,7 +30,7 @@ createBtn.addEventListener("click", async (e) => {
 joinBtn.addEventListener("click", async (e) => {
   if (nameInput.value && codeInput.value) {
     await createRoom(codeInput.value);
-    lobbySource();
+    initSource();
   }
 });
 
@@ -42,7 +44,12 @@ startBtn.addEventListener("click", (e) => {
 //////////////////////////////////////////////////////////////
 /// GAME
 
-buildGameHtml();
+// Post comment button handler
+commentBtn.addEventListener("click", async (e) => {
+  if (commentInput.value) {
+    sendComment();
+  }
+});
 
 //////////////////////////////////////////////////////////////
 /// ROUND-END

@@ -13,6 +13,8 @@ const introForm = document.querySelector(".intro");
 // Inputs
 const nameInput = document.querySelector("#name");
 
+const createBtn = document.querySelector(".btn--create-room");
+
 ////////////////////////////
 // CODE
 ////////////////////////////
@@ -26,17 +28,21 @@ introForm.addEventListener("submit", (e) => {
 export const createRoom = async function (code = "") {
   //////////////////////////////////
   // Send room start to server
+
   const body = JSON.stringify({
     name: nameInput.value,
   });
-
-  const response = await fetch(`http://127.0.0.1:3000/${code ? code : ""}`, {
-    method: "POST",
-    body,
-    headers: {
-      "Content-type": "application/json",
-    },
-  });
+  const response = await fetch(
+    `http://127.0.0.1:3000/${code ? "join/" + code : ""}`,
+    {
+      method: "POST",
+      body,
+      headers: {
+        "Content-type": "application/json",
+      },
+    }
+  );
+  createBtn.style.backgroundColor = "red";
 
   if (response.status !== 201 && response.status !== 200)
     return "error", response;
