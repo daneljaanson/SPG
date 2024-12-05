@@ -50,7 +50,7 @@ html(lang="en")
                     span.tool-icon.tool-icon--medium &nbsp;
                   .drwScreen__tool.drwScreen__tool--big
                     span.tool-icon.tool-icon--big &nbsp;
-                .drwScreen__picture
+                .drwScreen__picture(id="drwScreenPicture")
                   label.drwScreen__picture--role Drawista
                 .drwScreen__colors
                   .drwScreen__color.drwScreen__color--white
@@ -115,4 +115,8 @@ html(lang="en")
             h2.heading-secondary Game end
             button.btn New game
 
+    script(src='./js/utilities.js' type="module")
     script(src='./js/index.js' type="module")
+    script(src='./js/game.js' type="module")
+    script(src='./js/lobby.js' type="module")
+    script(src='./js/eventSources.js' type="module")

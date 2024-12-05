@@ -9,12 +9,13 @@ router.route("/").get(viewController.intro).post(gameController.joinRoom);
 router.route("/join/:code").post(gameController.joinRoom);
 
 //lobby
-router.route("/lobbySSE/").get(gameController.lobbySSE);
+router.route("/lobbySSE/:code/:playerId").get(gameController.lobbySSE);
 
 //game
-router.route("/play/").get(gameController.startGame);
-router.route("/comment/").post(gameController.sendComment);
-router.route("/pictureSSE/").get(gameController.pictureSSE);
-router.route("/commentSSE/").get(gameController.commentSSE);
+router.route("/play/:code").get(gameController.startGame);
+router.route("/comment/:code/:playerId").post(gameController.sendComment);
+router.route("/xy/:code/:x/:y").post(gameController.sendCoords);
+router.route("/pictureSSE/:code/:playerId").get(gameController.pictureSSE);
+router.route("/commentSSE/:code/:playerId").get(gameController.commentSSE);
 
 module.exports = router;

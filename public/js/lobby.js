@@ -12,7 +12,7 @@ const loader = document.querySelector(".lds-ellipsis-container");
 const introForm = document.querySelector(".intro");
 // Inputs
 const nameInput = document.querySelector("#name");
-
+// Buttons
 const createBtn = document.querySelector(".btn--create-room");
 
 ////////////////////////////
@@ -24,24 +24,20 @@ introForm.addEventListener("submit", (e) => {
   e.preventDefault();
 });
 
-// Disable button, move to room screen, send request to make room / establish lobby SSE
+// Send request to make room / establish lobby SSE, show lobby
 export const createRoom = async function (code = "") {
   //////////////////////////////////
   // Send room start to server
-
   const body = JSON.stringify({
     name: nameInput.value,
   });
-  const response = await fetch(
-    `http://127.0.0.1:3000/${code ? "join/" + code : ""}`,
-    {
-      method: "POST",
-      body,
-      headers: {
-        "Content-type": "application/json",
-      },
-    }
-  );
+  const response = await fetch(`/${code ? "join/" + code : ""}`, {
+    method: "POST",
+    body,
+    headers: {
+      "Content-type": "application/json",
+    },
+  });
   createBtn.style.backgroundColor = "red";
 
   if (response.status !== 201 && response.status !== 200)
@@ -53,6 +49,7 @@ export const createRoom = async function (code = "") {
 
   // Add room key to HTML
   codeLabel.textContent = json.data.code;
+  codeLabel.setAttribute("data-player", json.data.id);
 
   // Hide loader
   loader.style.opacity = 0;

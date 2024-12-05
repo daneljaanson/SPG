@@ -4,6 +4,7 @@ const xss = require("xss-clean");
 const gameRouter = require("./routes/gameRouter");
 const path = require("path");
 const morgan = require("morgan");
+const helmet = require("helmet");
 const cookieParser = require("cookie-parser");
 
 const app = express();
@@ -16,7 +17,12 @@ app.set("view engine", "pug");
 // Prevent XSS attacks (html)
 app.use(xss());
 // Implement CORS (will add some headers to allow cross-origin requests)
-app.use(cors());
+app.use(
+  cors({
+    origin: true,
+    credentials: true,
+  })
+);
 
 //will get requested by the browser (for non-simple requests) in the "pre-flight phase"
 app.options("*", cors());
@@ -32,6 +38,22 @@ app.use(cookieParser());
 //SET STATIC FOLDER
 app.use(express.static(path.join(__dirname, "public")));
 
+//SET SECURITY HTTP HEADERS
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        "script-src": [
+          "'self'",
+          "192.168.1.149:3000/js/",
+          "192.168.1.149:3000/",
+        ],
+
+        upgradeInsecureRequests: null,
+      },
+    },
+  })
+);
 //ROUTES
 app.use("/", gameRouter);
 
