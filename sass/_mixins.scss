@@ -1,0 +1,37 @@
+// MEDIA QUERY MANAGER
+
+@mixin respond($breakpoint) {
+  @if $breakpoint == breakpoint-1 {
+    @media only screen and (max-aspect-ratio: 13/11) {
+      @content;
+    }
+  }
+  @if $breakpoint == breakpoint-2 {
+    @media only screen and (max-aspect-ratio: 1/2) {
+      @content;
+    }
+  }
+  @if $breakpoint == breakpoint-3 {
+    @media only screen and (max-aspect-ratio: 7/20) {
+      @content;
+    }
+  }
+  @if $breakpoint == high {
+    //1000px
+    @media only screen and (max-width: 62.5em) {
+      @content;
+    }
+  }
+  @if $breakpoint == mid {
+    //800px
+    @media only screen and (max-width: 50em) {
+      @content;
+    }
+  }
+  @if $breakpoint == minimum {
+    //800px
+    @media only screen and (max-width: 50em) {
+      @content;
+    }
+  }
+}

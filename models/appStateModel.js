@@ -29,14 +29,14 @@ const newKeyGen = (n) => {
 
 exports.newRoom = (gameState) => {
   //TODO real room keys
-  const newKey = newKeyGen(5);
+  const newKey = newKeyGen(process.env.ROOM_KEY_LENGTH);
   games[newKey] = gameState;
   return newKey;
 };
 
 exports.getRoom = (code) => {
   if (games[code]) return games[code];
-  console.log("Error in .getRoom");
+  return undefined;
 };
 
 exports.printPlayers = (code) => console.log(games[code].players);

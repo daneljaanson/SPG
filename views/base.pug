@@ -18,10 +18,10 @@ html(lang="en")
                 input(type="text" name="name" id="name" required)
               .intro__input
                 label.intro__label Room code
-                input(type="text" name="code" id="code")
+                input.intro_room_code_input(type="text" name="code" id="code")
               .intro__submit
-                input.btn.btn--create-room(type="submit" value="Create") 
                 input.btn.btn--join-room(type="submit" value="Join") 
+                input.btn.btn--create-room(type="submit" value="Create") 
 
         .container.container--room
           .container-inner
@@ -50,7 +50,8 @@ html(lang="en")
                     span.tool-icon.tool-icon--medium &nbsp;
                   .drwScreen__tool.drwScreen__tool--big
                     span.tool-icon.tool-icon--big &nbsp;
-                .drwScreen__picture(id="drwScreenPicture")
+                div.drwScreen__picture-container
+                  canvas.drwScreen__picture(id="drwScreenPicture")
                   label.drwScreen__picture--role Drawista
                 .drwScreen__colors
                   .drwScreen__color.drwScreen__color--white
@@ -60,49 +61,13 @@ html(lang="en")
                   p.game__info--info-text You gotta know this!
                 ul.game__info--player-list
                   li exam
-                  li exampleplayer2fs1231232132132
+                  li ampleplayer2fs1
                   li examplepl ayerassdaa
                 .game__info--comments
                   ul.game__info--comment-list
-                    li.game__info--comment Good game five stars good job!
-                    li.game__info--comment Good game five stars good job!
-                    li.game__info--comment Good game five stars good job!
-                    li.game__info--comment Good game five stars good job!
-                    li.game__info--comment Good game five stars good job!
-                    li.game__info--comment Good game five stars good job!
-                    li.game__info--comment Good game five stars good job!
-                    li.game__info--comment Good game five stars good job!
-                    li.game__info--comment Good game five stars good job!
-                    li.game__info--comment Good game five stars good job!
-                    li.game__info--comment Good game five stars good job!
-                    li.game__info--comment Good game five stars good job!
-                    li.game__info--comment Good game five stars good job!
-                    li.game__info--comment Good game five stars good job!
-                    li.game__info--comment Good game five stars good job!
-                    li.game__info--comment Good game five stars good job!
-                    li.game__info--comment Good game five stars good job!
-                    li.game__info--comment Good game five stars good job!
-                    li.game__info--comment Good game five stars good job!
-                    li.game__info--comment Good game five stars good job!
-                    li.game__info--comment Good game five stars good job!Good game five stars good job!Good game five stars good job!Good game five stars good job!
-                    li.game__info--comment Good game five stars good job!
-                    li.game__info--comment Good game five stars good job!
-                    li.game__info--comment Good game five stars good job!
-                    li.game__info--comment Good game five stars good job!
-                    li.game__info--comment Good game five stars good job!
-                    li.game__info--comment Good game five stars good job!
-                    li.game__info--comment Good game five stars good job!
-                    li.game__info--comment Good game five stars good job!
-                    li.game__info--comment Good game five stars good job!
-                    li.game__info--comment Good game five stars good job!
-                    li.game__info--comment Good game five stars good job!
-                    li.game__info--comment Good game five stars good job!
-                    li.game__info--comment Good game five stars good job!
-                    li.game__info--comment Good game five stars good job!
-                    li.game__info--comment Good game five stars good job!
                 form.game__info--form(action="#")
                   input.game__info--input(type="text" name="comment" id="comment" placeholder="Write guess:" )
-                  button.game__info--btn(type="button")
+                  button.game__info--btn(type="submit")
 
 
         .container.container--round-end
@@ -120,3 +85,5 @@ html(lang="en")
     script(src='./js/game.js' type="module")
     script(src='./js/lobby.js' type="module")
     script(src='./js/eventSources.js' type="module")
+    script(src='./js/alerts.js' type="module")
+    script(src='./js/drawing.js' type="module")

@@ -1,3 +1,5 @@
+@use "./mixins" as m;
+
 .game {
   height: 100%;
 
@@ -7,9 +9,8 @@
 
   justify-content: center;
 
-  @media (max-aspect-ratio: 12/11) {
+  @include m.respond(breakpoint-1) {
     flex-direction: column;
-    justify-content: start;
 
     align-items: center;
   }
@@ -33,25 +34,31 @@
   &__tools {
     // grid-column: tools-start / tools-end;
   }
-  &__picture {
+  &__picture-container {
+    position: relative;
     height: calc(100vh - (2 * var(--screen-padding)));
     aspect-ratio: 3/4;
-    position: relative;
     // grid-column: game-start / game-end;
 
     // height: 70vh;
-    @media (max-aspect-ratio: 12/11) {
+    @include m.respond(breakpoint-1) {
       height: calc(60vh - var(--screen-padding));
     }
-
-    &--role {
-      position: absolute;
-      top: 3rem;
-      left: 50%;
-      transform: translateX(-50%);
-      font-size: 2.4rem;
+    @include m.respond(breakpoint-2) {
+      height: calc(45vh - var(--screen-padding));
+    }
+    @include m.respond(breakpoint-3) {
+      height: calc(35vh - var(--screen-padding));
     }
   }
+  &__picture--role {
+    position: absolute;
+    top: 3rem;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 2.4rem;
+  }
+
   &__colors {
     // grid-column: colors-start / colors-end;
   }
@@ -106,22 +113,29 @@
 
 .game__info {
   height: calc(100vh - (2 * var(--screen-padding)));
-  aspect-ratio: 3/6;
+  // aspect-ratio: 1/2;
   // width: minmax(40rem, 100%);
   //Setup grid
   display: grid;
   gap: 1rem;
-  flex-direction: column;
+  // flex-direction: column;
 
-  grid-template-columns: 1fr;
   grid-template-rows: min-content min-content 1fr min-content;
+  @include m.respond(breakpoint-1) {
+    height: calc(40vh - var(--screen-padding));
+    width: 90vw;
 
-  @media (max-aspect-ratio: 12/11) {
-    height: 100%;
+    // height: 100%;
     aspect-ratio: unset;
 
-    grid-template-columns: 15rem 40rem;
+    grid-template-columns: min-content 1fr;
     grid-template-rows: min-content 1fr min-content;
+  }
+  @include m.respond(breakpoint-2) {
+    height: calc(55vh - var(--screen-padding));
+  }
+  @include m.respond(breakpoint-3) {
+    height: calc(65vh - var(--screen-padding));
   }
 
   & > * {
@@ -133,7 +147,6 @@
   }
 
   &--info-box {
-    background-color: cadetblue;
   }
   &--info-text {
     font-size: 2.6rem;
@@ -141,32 +154,30 @@
   &--player-list {
     border: none;
 
-    display: flex;
+    display: grid;
     gap: 1rem;
-    justify-content: space-between;
+    grid-template-columns: 1fr 1fr 1fr;
+    grid-template-rows: 1fr;
 
     font-size: 1.6rem;
-    overflow-wrap: break-word;
 
-    @media (max-aspect-ratio: 12/11) {
+    @include m.respond(breakpoint-1) {
       flex-direction: column;
 
       grid-column: 1 / span 1;
       grid-row: 1 / span 2;
+      height: 100%;
+      grid-template-columns: 1fr;
+      grid-template-rows: 1fr 1fr 1fr;
     }
-
     li {
       border: 1px solid #000;
-      width: 100%;
-      height: 8rem;
-      background-color: aqua;
+      height: 100%;
       display: block;
       padding: 1rem;
     }
   }
   &--comments {
-    background-color: khaki;
-
     position: relative;
     overflow: hidden;
     overflow-y: auto;
@@ -183,8 +194,7 @@
     font-size: 1.6rem;
   }
   &--form {
-    background-color: limegreen;
-    @media (max-aspect-ratio: 12/11) {
+    @include m.respond(breakpoint-1) {
       grid-column: 1 / span 2;
     }
   }

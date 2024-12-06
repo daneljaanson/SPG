@@ -1,0 +1,16 @@
+doctype html
+
+html(lang="en")
+  head
+    meta(charset="UTF-8")
+    meta(name="viewport" content="width=device-width, initial-scale=1.0")
+    link(rel="stylesheet" href="/css/style.css")
+    script(src='./js/FOUC_FIX.js')
+    title SDG
+  body
+    main.game-window
+        .container
+          .container-inner
+            h2.heading-primary= title 
+            p= msg
+

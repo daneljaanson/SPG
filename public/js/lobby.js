@@ -1,5 +1,6 @@
 "use strict";
 
+import { showAlert } from "./alerts.js";
 ////////////////////////////
 // ELEMENTS
 ////////////////////////////
@@ -26,22 +27,30 @@ introForm.addEventListener("submit", (e) => {
 
 // Send request to make room / establish lobby SSE, show lobby
 export const createRoom = async function (code = "") {
+  const codeUpper = code.toUpperCase();
   //////////////////////////////////
   // Send room start to server
   const body = JSON.stringify({
     name: nameInput.value,
   });
-  const response = await fetch(`/${code ? "join/" + code : ""}`, {
+  const response = await fetch(`/${codeUpper ? "join/" + codeUpper : ""}`, {
     method: "POST",
     body,
     headers: {
       "Content-type": "application/json",
     },
   });
-  createBtn.style.backgroundColor = "red";
 
-  if (response.status !== 201 && response.status !== 200)
-    return "error", response;
+  if (response.status === 403 || response.status === 404) {
+    const json = await response.json();
+    showAlert("error", `Error: ${json.data.message}`);
+    return false;
+  }
+
+  if (response.status !== 201 && response.status !== 200) {
+    showAlert("error", `Status code: ${response.status}`);
+    return false;
+  }
 
   //////////////////////////////////
   // Show room code and display lobby
@@ -60,4 +69,6 @@ export const createRoom = async function (code = "") {
   // Show lobby
   lobbyContainer.style.opacity = 1;
   lobbyContainer.style.userSelect = "auto";
+
+  return true;
 };

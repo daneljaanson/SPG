@@ -1,11 +1,12 @@
 const express = require("express");
 const cors = require("cors");
 const xss = require("xss-clean");
-const gameRouter = require("./routes/gameRouter");
+const gameRouter = require("./routes/gameRouter.js");
 const path = require("path");
 const morgan = require("morgan");
 const helmet = require("helmet");
-const cookieParser = require("cookie-parser");
+const AppError = require("./utils/appError.js");
+const globalErrorHandler = require("./controllers/errorController.js");
 
 const app = express();
 
@@ -33,7 +34,6 @@ if (process.env.NODE_ENV === "development") app.use(morgan("dev"));
 //BODY AVAILABLE IN REQ.BODY
 app.use(express.json({ limit: "10kb" }));
 app.use(express.json({ extended: true, limit: "10kb" }));
-app.use(cookieParser());
 
 //SET STATIC FOLDER
 app.use(express.static(path.join(__dirname, "public")));
@@ -59,7 +59,10 @@ app.use("/", gameRouter);
 
 //CATCH UNDEFINED ROUTES
 app.all("*", (req, res, next) => {
-  res.status(404).send(`${req.originalUrl} not found!`);
+  next(new AppError(`${req.originalUrl} not found!`, 404, true));
 });
+
+// Gets used automatically as error handler as it can take 4 args
+app.use(globalErrorHandler);
 
 module.exports = app;

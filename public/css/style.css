@@ -3,7 +3,12 @@
   --btn-width: 15rem;
   --screen-padding: 10vh;
 }
-@media (max-aspect-ratio: 12/11) {
+@media only screen and (max-aspect-ratio: 13/11) {
+  :root {
+    --screen-padding: 2vh;
+  }
+}
+@media only screen and (max-width: 50em) {
   :root {
     --screen-padding: 2vh;
   }
@@ -19,6 +24,16 @@
 
 html {
   font-size: 62.5%;
+}
+@media only screen and (max-width: 62.5em) {
+  html {
+    font-size: 50%;
+  }
+}
+@media only screen and (max-width: 50em) {
+  html {
+    font-size: 40%;
+  }
 }
 
 body {
@@ -82,6 +97,19 @@ body {
   background-color: rgba(0, 0, 0, 0.2);
 }
 
+.alert {
+  padding: 1rem;
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.2);
+  background-color: #fff;
+  position: absolute;
+  top: 3rem;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 3rem;
+  opacity: 1;
+  transition: all 0.2s;
+}
+
 .intro {
   margin-top: 5rem;
   display: flex;
@@ -104,6 +132,10 @@ body {
   gap: 1rem;
   justify-content: center;
   align-items: center;
+}
+
+.intro_room_code_input {
+  text-transform: uppercase;
 }
 
 .lds-ellipsis-container {
@@ -214,7 +246,7 @@ body {
   font-size: 2.4rem;
   line-height: 1;
   list-style: none;
-  flex-grow: 1;
+  min-height: 20rem;
 }
 
 .game {
@@ -224,10 +256,9 @@ body {
   flex-direction: row;
   justify-content: center;
 }
-@media (max-aspect-ratio: 12/11) {
+@media only screen and (max-aspect-ratio: 13/11) {
   .game {
     flex-direction: column;
-    justify-content: start;
     align-items: center;
   }
 }
@@ -239,14 +270,24 @@ body {
 .drwScreen > * {
   border: 1px solid #000;
 }
-.drwScreen__picture {
+.drwScreen__picture-container {
+  position: relative;
   height: calc(100vh - 2 * var(--screen-padding));
   aspect-ratio: 3/4;
-  position: relative;
 }
-@media (max-aspect-ratio: 12/11) {
-  .drwScreen__picture {
+@media only screen and (max-aspect-ratio: 13/11) {
+  .drwScreen__picture-container {
     height: calc(60vh - var(--screen-padding));
+  }
+}
+@media only screen and (max-aspect-ratio: 1/2) {
+  .drwScreen__picture-container {
+    height: calc(45vh - var(--screen-padding));
+  }
+}
+@media only screen and (max-aspect-ratio: 7/20) {
+  .drwScreen__picture-container {
+    height: calc(35vh - var(--screen-padding));
   }
 }
 .drwScreen__picture--role {
@@ -301,19 +342,27 @@ body {
 
 .game__info {
   height: calc(100vh - 2 * var(--screen-padding));
-  aspect-ratio: 3/6;
   display: grid;
   gap: 1rem;
-  flex-direction: column;
-  grid-template-columns: 1fr;
   grid-template-rows: min-content min-content 1fr min-content;
 }
-@media (max-aspect-ratio: 12/11) {
+@media only screen and (max-aspect-ratio: 13/11) {
   .game__info {
-    height: 100%;
+    height: calc(40vh - var(--screen-padding));
+    width: 90vw;
     aspect-ratio: unset;
-    grid-template-columns: 15rem 40rem;
+    grid-template-columns: min-content 1fr;
     grid-template-rows: min-content 1fr min-content;
+  }
+}
+@media only screen and (max-aspect-ratio: 1/2) {
+  .game__info {
+    height: calc(55vh - var(--screen-padding));
+  }
+}
+@media only screen and (max-aspect-ratio: 7/20) {
+  .game__info {
+    height: calc(65vh - var(--screen-padding));
   }
 }
 .game__info > * {
@@ -322,37 +371,34 @@ body {
 .game__info ul {
   list-style: none;
 }
-.game__info--info-box {
-  background-color: cadetblue;
-}
 .game__info--info-text {
   font-size: 2.6rem;
 }
 .game__info--player-list {
   border: none;
-  display: flex;
+  display: grid;
   gap: 1rem;
-  justify-content: space-between;
+  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-rows: 1fr;
   font-size: 1.6rem;
-  overflow-wrap: break-word;
 }
-@media (max-aspect-ratio: 12/11) {
+@media only screen and (max-aspect-ratio: 13/11) {
   .game__info--player-list {
     flex-direction: column;
     grid-column: 1/span 1;
     grid-row: 1/span 2;
+    height: 100%;
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr 1fr 1fr;
   }
 }
 .game__info--player-list li {
   border: 1px solid #000;
-  width: 100%;
-  height: 8rem;
-  background-color: aqua;
+  height: 100%;
   display: block;
   padding: 1rem;
 }
 .game__info--comments {
-  background-color: khaki;
   position: relative;
   overflow: hidden;
   overflow-y: auto;
@@ -366,10 +412,7 @@ body {
   display: block;
   font-size: 1.6rem;
 }
-.game__info--form {
-  background-color: limegreen;
-}
-@media (max-aspect-ratio: 12/11) {
+@media only screen and (max-aspect-ratio: 13/11) {
   .game__info--form {
     grid-column: 1/span 2;
   }

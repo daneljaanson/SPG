@@ -2,12 +2,13 @@
 
 class Player {
   constructor(name) {
+    const maxName = 10 ** (process.env.PLAYER_ID_LENGTH - 1);
     this.name = name;
     this.points = 0;
     this.isDrawing = false;
     this.timesDrawn = 0;
     this.id = Math.trunc(
-      Math.random() * (9999999999 - 1000000000) + 1000000000
+      Math.random() * (maxName * 10 - 1 - maxName) + maxName
     );
   }
 }

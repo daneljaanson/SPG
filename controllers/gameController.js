@@ -13,6 +13,12 @@ exports.joinRoom = (req, res) => {
     Room = AppStateModel.getRoom(req.params.code);
   }
 
+  if (!Room)
+    return res.status(404).json({
+      //forbidden
+      status: "fail",
+      data: { message: "Game not found" },
+    });
   if (Room.gameState !== "lobby")
     return res.status(403).json({
       //forbidden

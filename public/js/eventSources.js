@@ -24,7 +24,6 @@ export const initSource = function () {
 
   eventSource.onmessage = (event) => {
     const data = JSON.parse(event.data);
-    console.log("lobby status", data.status);
 
     // Add player name to ul
     if (data.status === "open") {
@@ -42,7 +41,6 @@ export const initSource = function () {
       const gameEventSource = gameSources();
       return setTimeout(() => {
         eventSource.close();
-        console.log("lobby source closed");
       }, 5000);
     }
   };
@@ -71,7 +69,6 @@ const pictureSource = () => {
 
   eventSource.onmessage = (event) => {
     const data = JSON.parse(event.data);
-    console.log("new coord", data.newcoord);
     // TODO display coords
   };
 

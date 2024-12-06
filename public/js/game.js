@@ -21,14 +21,18 @@ export const startGame = async () => {
   // 192.168.1.149
   // 127.0.0.1
   const response = await fetch(`/play/${code}`);
-  if (response.status !== 200) return "error", response;
+  if (response.status !== 200)
+    return showAlert("error", `Error: Game could not be started`);
 };
 
 export const sendComment = async () => {
+  // Create data
   const [code, id] = getRoomAndPlayer();
   const body = JSON.stringify({
     comment: commentInput.value,
   });
+  // Empty the input
+  commentInput.value = "";
   // Send comment to server
   const response = await fetch(`/comment/${code}/${id}`, {
     method: "POST",
@@ -38,19 +42,6 @@ export const sendComment = async () => {
       "Content-type": "application/json",
     },
   });
-
-  const json = await response.json();
-
-  // TODO when error, display error to player
+  if (response.status !== 200)
+    return showAlert("error", `Error: Comment could not be sent`);
 };
-// TODO Add all game buttons and display
-export const buildGameHtml = () => {};
-
-// Display coordinates on click
-drwScreenPicture.addEventListener("click", function (e) {
-  const x = e.layerX;
-  const y = e.layerY;
-  drwScreenPicture.innerHTML = `${x}, ${y}`;
-  console.log(e);
-  console.log(this);
-});

@@ -3,6 +3,7 @@
 import { createRoom } from "./lobby.js";
 import { initSource } from "./eventSources.js";
 import { startGame, sendComment } from "./game.js";
+import { drawingHandlers } from "./drawing.js";
 
 // Buttons
 const createBtn = document.querySelector(".btn--create-room");
@@ -21,16 +22,16 @@ const commentInput = document.querySelector("#comment");
 // Start game button handler
 createBtn.addEventListener("click", async (e) => {
   if (nameInput.value) {
-    await createRoom();
-    initSource();
+    const success = await createRoom();
+    if (success) initSource();
   }
 });
 
 // Join game button handler
 joinBtn.addEventListener("click", async (e) => {
   if (nameInput.value && codeInput.value) {
-    await createRoom(codeInput.value);
-    initSource();
+    const success = await createRoom(codeInput.value);
+    if (success) initSource();
   }
 });
 
@@ -45,12 +46,28 @@ startBtn.addEventListener("click", (e) => {
 /// GAME
 
 // Post comment button handler
-commentBtn.addEventListener("click", async (e) => {
+commentBtn.addEventListener("click", (e) => {
   if (commentInput.value) {
     sendComment();
   }
 });
 
+// Drawing handlers
+drawingHandlers();
+
+// Display coordinates on click
+const drwScreenPicture = document.querySelector("#drwScreenPicture");
+const roleLabel = document.querySelector(".drwScreen__picture--role");
+drwScreenPicture.addEventListener("click", function (e) {
+  // Get element sizes
+  const elRect = drwScreenPicture.getBoundingClientRect();
+
+  // Transform coordinates to fractions
+  const fractionX = e.layerX / elRect.width;
+  const fractionY = e.layerY / elRect.height;
+
+  roleLabel.textContent = `${fractionX}, ${fractionY}`;
+});
 //////////////////////////////////////////////////////////////
 /// ROUND-END
 
