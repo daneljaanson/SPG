@@ -50,7 +50,7 @@ const startSSE = (res) =>
   });
 
 // Automatically show new players in lobby list
-exports.lobbySSE = async (req, res) => {
+exports.lobbySSE = (req, res) => {
   // Start connection
   startSSE(res);
   const Room = AppStateModel.getRoom(req.params.code);
@@ -58,7 +58,7 @@ exports.lobbySSE = async (req, res) => {
   Room.lobbySSEResponses[playerId] = res;
 
   // Send initial state command
-  data = {
+  const data = {
     status: "init",
     data: "",
   };
@@ -72,20 +72,31 @@ exports.lobbySSE = async (req, res) => {
   });
 };
 
-// Start game
-exports.startGame = async (req, res) => {
-  // Get user and room
+// Start SSE before game
+exports.startSSE = (req, res) => {
+  // Get room
   const Room = AppStateModel.getRoom(req.params.code);
-  // Send start signal
-  Room.writeLobby("start");
-  // Change room state
-  Room.gameState = "inGame";
+  // Start SSE
+  Room.startGameSSE();
+};
 
-  res.status(200).json({ status: "success", data: "game started" });
+// Start game
+exports.startGame = (req, res) => {
+  // Get  room
+  const Room = AppStateModel.getRoom(req.params.code);
+  // Send start state to server if amount of connections is the same as players
+  if (
+    Object.keys(Room.players).length ===
+    Object.keys(Room.stateSSEResponses).length
+  ) {
+    Room.startGame();
+  }
+
+  res.status(200).json({ status: "success", data: "event source confirmed" });
 };
 
 // Update picture
-exports.pictureSSE = async (req, res) => {
+exports.pictureSSE = (req, res) => {
   // Start connection
   startSSE(res);
 
@@ -94,7 +105,7 @@ exports.pictureSSE = async (req, res) => {
   Room.pictureSSEResponses[playerId] = res;
 
   // Send initial state command
-  data = {
+  const data = {
     status: "init",
     data: "picture sse init",
   };
@@ -106,7 +117,7 @@ exports.pictureSSE = async (req, res) => {
 };
 
 // Update comments
-exports.commentSSE = async (req, res) => {
+exports.commentSSE = (req, res) => {
   // Start connection
   startSSE(res);
 
@@ -115,11 +126,12 @@ exports.commentSSE = async (req, res) => {
   Room.commentSSEResponses[playerId] = res;
 
   // Send initial state command
-  data = {
+  const data = {
     comment: "comment SSE init",
   };
   setTimeout(() => {
     res.write(`data: ${JSON.stringify(data)}\n\n`);
+    Room.sendComment(playerId, "pasinga");
   }, 2000);
 
   req.on("close", () => {
@@ -127,12 +139,25 @@ exports.commentSSE = async (req, res) => {
   });
 };
 
+exports.stateSSE = (req, res) => {
+  // Start connection
+  startSSE(res);
+
+  const Room = AppStateModel.getRoom(req.params.code);
+  const playerId = req.params.playerId;
+  Room.stateSSEResponses[playerId] = res;
+
+  req.on("close", () => {
+    res.end();
+  });
+};
+
 // Send comment update command
-exports.sendComment = async (req, res) => {
+exports.sendComment = (req, res) => {
   // Get user and room
   const Room = AppStateModel.getRoom(req.params.code);
   const playerId = req.params.playerId;
-  // Send start signal
+  // Send comment signal
   Room.sendComment(playerId, req.body.comment);
 
   res
@@ -144,4 +169,11 @@ exports.sendComment = async (req, res) => {
 exports.sendCoords = (req, res) => {
   const Room = AppStateModel.getRoom(req.params.code);
   const playerId = req.params.playerId;
+
+  // Send coordinate signal
+  Room.sendCoordinates(playerId, req.body.stroke);
+
+  res
+    .status(200)
+    .json({ status: "success", data: { message: "Comment sent" } });
 };

@@ -51,7 +51,14 @@
       height: calc(35vh - var(--screen-padding));
     }
   }
+
+  &__picture {
+    user-select: none;
+    pointer-events: none;
+  }
   &__picture--role {
+    user-select: none;
+    pointer-events: none;
     position: absolute;
     top: 3rem;
     left: 50%;
@@ -173,8 +180,14 @@
     li {
       border: 1px solid #000;
       height: 100%;
-      display: block;
       padding: 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+    span {
+      font-weight: 700;
+      font-size: 3rem;
     }
   }
   &--comments {

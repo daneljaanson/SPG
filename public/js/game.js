@@ -1,10 +1,8 @@
 "use strict";
 
+import { showAlert } from "./alerts.js";
 import { getRoomAndPlayer } from "./utilities.js";
 
-// Painting screen
-const drwScreenPicture = document.querySelector("#drwScreenPicture");
-const drwScreenLabel = document.querySelector(".drwScreen__picture--role");
 // Forms
 const commentForm = document.querySelector(".game__info--form");
 // Inputs
@@ -27,6 +25,7 @@ export const startGame = async () => {
 
 export const sendComment = async () => {
   // Create data
+  console.log("in send comment");
   const [code, id] = getRoomAndPlayer();
   const body = JSON.stringify({
     comment: commentInput.value,
@@ -36,7 +35,6 @@ export const sendComment = async () => {
   // Send comment to server
   const response = await fetch(`/comment/${code}/${id}`, {
     method: "POST",
-    credentials: "include",
     body,
     headers: {
       "Content-type": "application/json",
@@ -45,3 +43,28 @@ export const sendComment = async () => {
   if (response.status !== 200)
     return showAlert("error", `Error: Comment could not be sent`);
 };
+
+export const sendDrawingStroke = async (currentDrawingStroke) => {
+  if (!currentDrawingStroke) return;
+  // Create data
+  const [code, id] = getRoomAndPlayer();
+  const body = JSON.stringify({
+    stroke: currentDrawingStroke,
+  });
+  // Empty the input
+  commentInput.value = "";
+  // Send comment to server
+  console.log("in send draw stroke");
+  const response = await fetch(`/xy/${code}/${id}`, {
+    method: "POST",
+    body,
+    headers: {
+      "Content-type": "application/json",
+    },
+  });
+  if (response.status !== 200)
+    return showAlert("error", `Error: Comment could not be sent`);
+};
+
+// Send round end signal to server
+export const roundEnd = async () => {};

@@ -17,14 +17,16 @@ router.route("/join/:code").post(validator.validate, gameController.joinRoom);
 router.route("/lobbySSE/:code/:playerId").get(gameController.lobbySSE);
 
 //game
-router.route("/play/:code").get(gameController.startGame);
+router.route("/play/:code").get(gameController.startSSE);
+router.route("/play/:code/ok").get(gameController.startGame);
 router
   .route("/comment/:code/:playerId")
   .post(validator.validate, gameController.sendComment);
 router
-  .route("/xy/:code/:x/:y")
+  .route("/xy/:code/:playerId")
   .post(validator.validate, gameController.sendCoords);
 router.route("/pictureSSE/:code/:playerId").get(gameController.pictureSSE);
 router.route("/commentSSE/:code/:playerId").get(gameController.commentSSE);
+router.route("/stateSSE/:code/:playerId").get(gameController.stateSSE);
 
 module.exports = router;

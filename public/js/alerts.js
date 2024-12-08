@@ -1,6 +1,10 @@
 const mainWindowEl = document.querySelector(".game-window");
 
+// Cannot trigger several alerts
+let isAlert = false;
+
 const hideAlert = () => {
+  isAlert = false;
   const el = document.querySelector(".alert");
   el.style.opacity = 0;
   setTimeout(() => {
@@ -9,11 +13,14 @@ const hideAlert = () => {
 };
 
 export const showAlert = (title, message) => {
-  mainWindowEl.insertAdjacentHTML(
-    "beforeend",
-    `<div class="alert">${message}</div>`
-  );
-  setTimeout(() => {
-    hideAlert();
-  }, 5000);
+  if (!isAlert) {
+    isAlert = true;
+    mainWindowEl.insertAdjacentHTML(
+      "beforeend",
+      `<div class="alert">${message}</div>`
+    );
+    setTimeout(() => {
+      hideAlert();
+    }, 5000);
+  }
 };

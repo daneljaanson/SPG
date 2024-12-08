@@ -1,13 +1,15 @@
 "use strict";
 
+const fs = require("fs");
+
 // Games object keys are room codes
 const games = {};
 
-//TODO
-//TODO
-//TODO
-//TODO
-//TODO
+// Open game's dictionary
+const wordList = fs.readFileSync(
+  `${__dirname}/../word_lists/dictionary.txt`,
+  "UTF-8"
+);
 
 // Random uppercase letters
 const randLetters = (n) => {
@@ -39,4 +41,7 @@ exports.getRoom = (code) => {
   return undefined;
 };
 
-exports.printPlayers = (code) => console.log(games[code].players);
+exports.randomWord = () => {
+  console.log("typeof wordlist in appmodel", typeof wordList);
+  return "apple strudel";
+};

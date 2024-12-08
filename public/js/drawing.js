@@ -1,4 +1,8 @@
-"use strict";
+import { sendDrawingStroke } from "./game.js";
+("use strict");
+
+// TESTO
+const roleLabelEl = document.querySelector(".drwScreen__picture--role");
 
 // Div
 const drwScreenContainer = document.querySelector(
@@ -16,17 +20,26 @@ const ongoingTouches = [];
 let isDrawing = false;
 let x = 0;
 let y = 0;
+// [[[x, y], [...]], [...]]
+const drawingCoords = [];
+// [[x, y], [...]]
+let currentStroke = [];
 
 ////////////////////////////////////////////////////////
 // Functions
 ////////////////////////////////////////////////////////
-const resize = (e) => {
-  context = drwScreenPicture.getContext("2d");
-  // Aspect ratio 3/4 - Also check CSS
-  drwScreenPicture.height = drwScreenContainer.clientHeight;
-  drwScreenPicture.width = (drwScreenPicture.height * 3) / 4;
+
+// Translate coords to fractions of current viewport
+const coordsToFrac = (x, y) => {
+  return [x / curRect.width, y / curRect.height];
 };
-resize();
+// Translate fractions to coords
+const fracToCoords = (fracX, fracY) => {
+  return [
+    Math.round(fracX * curRect.width),
+    Math.round(fracY * curRect.height),
+  ];
+};
 
 // Some browsers want a new object
 const copyTouch = function ({ identifier, pageX, pageY }) {
@@ -43,12 +56,49 @@ const ongoingTouchIndexById = function (idToFind) {
   return -1; //not found
 };
 
+const redrawPainting = (context, drawingCoords) => {
+  drawingCoords.forEach((stroke) => {
+    drawStroke(stroke);
+  });
+};
+
+const resize = (e) => {
+  // Save current size to variable
+  curRect = drwScreenPicture.getBoundingClientRect();
+  // Aspect ratio 3/4 - Also check CSS
+  drwScreenPicture.height = drwScreenContainer.clientHeight;
+  drwScreenPicture.width = (drwScreenPicture.height * 3) / 4;
+  // Get new context for this size
+  context = drwScreenPicture.getContext("2d");
+  redrawPainting(context, drawingCoords);
+};
+resize();
+
+const drawLine = (context, x1, y1, x2, y2) => {
+  context.beginPath();
+  context.strokeStyle = "black";
+  context.lineWidth = 1;
+  context.moveTo(x1, y1);
+  context.lineTo(x2, y2);
+  context.stroke();
+  context.closePath();
+};
+
 // Resize drawing screen by js (so context would stay relevant)
 window.addEventListener("resize", resize);
 
 ////////////////////////////////////////////////////////
 // Exports
 ////////////////////////////////////////////////////////
+
+export const drawStroke = (stroke) =>
+  stroke.forEach(([fracX, fracY], i, arr) => {
+    if (i !== arr.length - 1) {
+      const [x, y] = fracToCoords(fracX, fracY);
+      const [nextX, nextY] = fracToCoords(arr[i + 1][0], arr[i + 1][1]);
+      drawLine(context, x, y, nextX, nextY);
+    }
+  });
 
 export const drawingHandlers = () => {
   /////////////////////////////////////////////////////////
@@ -57,31 +107,37 @@ export const drawingHandlers = () => {
     x = e.offsetX;
     y = e.offsetY;
     isDrawing = true;
+    currentStroke.push(coordsToFrac(x, y));
   });
   drwScreenPicture.addEventListener("mousemove", (e) => {
     if (isDrawing) {
       drawLine(context, x, y, e.offsetX, e.offsetY);
       x = e.offsetX;
       y = e.offsetY;
+      currentStroke.push(coordsToFrac(x, y));
+      roleLabelEl.textContent = coordsToFrac(x, y);
     }
   });
   window.addEventListener("mouseup", (e) => {
     isDrawing = false;
     x = 0;
     y = 0;
+    // Make deep copy
+    const currentStrokeCopy = JSON.parse(JSON.stringify(currentStroke));
+    drawingCoords.push(currentStrokeCopy);
+    // Send stroke
+    sendDrawingStroke(currentStrokeCopy);
+    currentStroke = [];
   });
 
   /////////////////////////////////////////////////////////
   // Touch
   drwScreenPicture.addEventListener("touchstart", (e) => {
     e.preventDefault();
-    curRect = drwScreenPicture.getBoundingClientRect();
 
     const touches = e.changedTouches;
     for (let i = 0; i < touches.length; i++) {
-      console.log(`touchstart: ${i}.`);
       ongoingTouches.push(copyTouch(touches[i]));
-      //   console.log(touches[i]);
       context.beginPath();
       context.arc(
         touches[i].pageX - curRect.left,
@@ -93,6 +149,13 @@ export const drawingHandlers = () => {
       );
       context.fillStyle = "black";
       context.fill();
+      // Save for resize
+      currentStroke.push(
+        coordsToFrac(
+          touches[i].pageX - curRect.left,
+          touches[i].pageY - curRect.top
+        )
+      );
     }
   });
   drwScreenPicture.addEventListener("touchmove", (e) => {
@@ -102,7 +165,6 @@ export const drawingHandlers = () => {
       const index = ongoingTouchIndexById(touches[i].identifier);
       // Continue touch
       if (index >= 0) {
-        console.log(`continuing touch: ${i}`);
         context.beginPath();
         context.moveTo(
           ongoingTouches[index].pageX - curRect.left,
@@ -117,6 +179,13 @@ export const drawingHandlers = () => {
         context.stroke();
 
         ongoingTouches.splice(index, 1, copyTouch(touches[i]));
+        // Save for resize
+        currentStroke.push(
+          coordsToFrac(
+            touches[i].pageX - curRect.left,
+            touches[i].pageY - curRect.top
+          )
+        );
       } else {
         console.log("cant figure out where to continue with touch");
       }
@@ -124,7 +193,6 @@ export const drawingHandlers = () => {
   });
   drwScreenPicture.addEventListener("touchend", (e) => {
     e.preventDefault();
-    console.log("touch end");
     const touches = e.changedTouches;
     for (let i = 0; i < touches.length; i++) {
       let index = ongoingTouchIndexById(touches[i].identifier);
@@ -142,6 +210,19 @@ export const drawingHandlers = () => {
           touches[i].pageY - curRect.top
         );
         ongoingTouches.splice(index, 1);
+        // Save for resize
+        currentStroke.push(
+          coordsToFrac(
+            touches[i].pageX - curRect.left,
+            touches[i].pageY - curRect.top
+          )
+        );
+        // Make deep copy
+        const currentStrokeCopy = JSON.parse(JSON.stringify(currentStroke));
+        drawingCoords.push(currentStrokeCopy);
+        // Send stroke
+        sendDrawingStroke(currentStrokeCopy);
+        currentStroke = [];
       } else {
         console.log("cant figure out where to continue with touch");
       }
@@ -149,12 +230,4 @@ export const drawingHandlers = () => {
   });
 };
 
-export const drawLine = (context, x1, y1, x2, y2) => {
-  context.beginPath();
-  context.strokeStyle = "black";
-  context.lineWidth = 1;
-  context.moveTo(x1, y1);
-  context.lineTo(x2, y2);
-  context.stroke();
-  context.closePath();
-};
+// Send coordinates to others

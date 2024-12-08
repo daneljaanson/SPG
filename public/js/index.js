@@ -55,19 +55,6 @@ commentBtn.addEventListener("click", (e) => {
 // Drawing handlers
 drawingHandlers();
 
-// Display coordinates on click
-const drwScreenPicture = document.querySelector("#drwScreenPicture");
-const roleLabel = document.querySelector(".drwScreen__picture--role");
-drwScreenPicture.addEventListener("click", function (e) {
-  // Get element sizes
-  const elRect = drwScreenPicture.getBoundingClientRect();
-
-  // Transform coordinates to fractions
-  const fractionX = e.layerX / elRect.width;
-  const fractionY = e.layerY / elRect.height;
-
-  roleLabel.textContent = `${fractionX}, ${fractionY}`;
-});
 //////////////////////////////////////////////////////////////
 /// ROUND-END
 
