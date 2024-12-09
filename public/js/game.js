@@ -45,7 +45,7 @@ export const sendComment = async () => {
 };
 
 export const sendDrawingStroke = async (currentDrawingStroke) => {
-  if (!currentDrawingStroke) return;
+  if (currentDrawingStroke.length === 0) return;
   // Create data
   const [code, id] = getRoomAndPlayer();
   const body = JSON.stringify({
@@ -63,7 +63,7 @@ export const sendDrawingStroke = async (currentDrawingStroke) => {
     },
   });
   if (response.status !== 200)
-    return showAlert("error", `Error: Comment could not be sent`);
+    return showAlert("error", `Error: Coordinates could not be sent`);
 };
 
 // Send round end signal to server

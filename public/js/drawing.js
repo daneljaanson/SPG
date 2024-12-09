@@ -20,7 +20,7 @@ const ongoingTouches = [];
 let isDrawing = false;
 let x = 0;
 let y = 0;
-// [[[x, y], [...]], [...]]
+// { playerId: [[[x, y], [...]], [...]]}
 const drawingCoords = [];
 // [[x, y], [...]]
 let currentStroke = [];
@@ -31,7 +31,10 @@ let currentStroke = [];
 
 // Translate coords to fractions of current viewport
 const coordsToFrac = (x, y) => {
-  return [x / curRect.width, y / curRect.height];
+  // Shorten the numbers
+  const newX = Number((x / curRect.width).toFixed(4));
+  const newY = Number((y / curRect.height).toFixed(4));
+  return [newX, newY];
 };
 // Translate fractions to coords
 const fracToCoords = (fracX, fracY) => {
@@ -56,23 +59,13 @@ const ongoingTouchIndexById = function (idToFind) {
   return -1; //not found
 };
 
-const redrawPainting = (context, drawingCoords) => {
-  drawingCoords.forEach((stroke) => {
-    drawStroke(stroke);
+const redrawPainting = (drawingCoords) => {
+  Object.values(drawingCoords).forEach((coordinates) => {
+    coordinates.forEach((stroke) => {
+      drawStroke(stroke);
+    });
   });
 };
-
-const resize = (e) => {
-  // Save current size to variable
-  curRect = drwScreenPicture.getBoundingClientRect();
-  // Aspect ratio 3/4 - Also check CSS
-  drwScreenPicture.height = drwScreenContainer.clientHeight;
-  drwScreenPicture.width = (drwScreenPicture.height * 3) / 4;
-  // Get new context for this size
-  context = drwScreenPicture.getContext("2d");
-  redrawPainting(context, drawingCoords);
-};
-resize();
 
 const drawLine = (context, x1, y1, x2, y2) => {
   context.beginPath();
@@ -84,13 +77,27 @@ const drawLine = (context, x1, y1, x2, y2) => {
   context.closePath();
 };
 
-// Resize drawing screen by js (so context would stay relevant)
-window.addEventListener("resize", resize);
-
 ////////////////////////////////////////////////////////
 // Exports
 ////////////////////////////////////////////////////////
 
+// Update canvas size and redraw the painting
+export const resize = (e) => {
+  // Aspect ratio 3/4 - Also check CSS
+  drwScreenPicture.height = drwScreenContainer.clientHeight;
+  drwScreenPicture.width = (drwScreenPicture.height * 3) / 4;
+  // Save current size to variable
+  curRect = drwScreenPicture.getBoundingClientRect();
+  // Get new context for this size
+  context = drwScreenPicture.getContext("2d");
+  // Draw saved picture using new context
+  redrawPainting(drawingCoords);
+};
+
+// Resize drawing screen by js (so context would stay relevant)
+window.addEventListener("resize", resize);
+
+// Draw one mouse click cycle [[fracX, fracY],[..]]
 export const drawStroke = (stroke) =>
   stroke.forEach(([fracX, fracY], i, arr) => {
     if (i !== arr.length - 1) {
@@ -100,6 +107,13 @@ export const drawStroke = (stroke) =>
     }
   });
 
+export const saveStroke = (playerId, stroke) => {
+  console.log("there is no player set: ", !drawingCoords[playerId]);
+  if (!drawingCoords[playerId]) drawingCoords[playerId] = [];
+  drawingCoords[playerId].push(stroke);
+};
+
+// Add event listeners to canvas to draw and save drawing coordinates
 export const drawingHandlers = () => {
   /////////////////////////////////////////////////////////
   // Mouse
@@ -119,12 +133,12 @@ export const drawingHandlers = () => {
     }
   });
   window.addEventListener("mouseup", (e) => {
+    // e.target.style.backgroundColor = "red";
     isDrawing = false;
     x = 0;
     y = 0;
     // Make deep copy
     const currentStrokeCopy = JSON.parse(JSON.stringify(currentStroke));
-    drawingCoords.push(currentStrokeCopy);
     // Send stroke
     sendDrawingStroke(currentStrokeCopy);
     currentStroke = [];
@@ -136,26 +150,16 @@ export const drawingHandlers = () => {
     e.preventDefault();
 
     const touches = e.changedTouches;
+    console.log(touches);
     for (let i = 0; i < touches.length; i++) {
+      // Set current X
+      x = touches[i].pageX - curRect.left;
+      y = touches[i].pageY - curRect.top;
+      //
       ongoingTouches.push(copyTouch(touches[i]));
-      context.beginPath();
-      context.arc(
-        touches[i].pageX - curRect.left,
-        touches[i].pageY - curRect.top,
-        4,
-        0,
-        2 * Math.PI,
-        false
-      );
-      context.fillStyle = "black";
-      context.fill();
+      drawLine(context, x, y, x, y);
       // Save for resize
-      currentStroke.push(
-        coordsToFrac(
-          touches[i].pageX - curRect.left,
-          touches[i].pageY - curRect.top
-        )
-      );
+      currentStroke.push(coordsToFrac(x, y));
     }
   });
   drwScreenPicture.addEventListener("touchmove", (e) => {
@@ -163,29 +167,18 @@ export const drawingHandlers = () => {
     const touches = e.changedTouches;
     for (let i = 0; i < touches.length; i++) {
       const index = ongoingTouchIndexById(touches[i].identifier);
+
       // Continue touch
       if (index >= 0) {
-        context.beginPath();
-        context.moveTo(
-          ongoingTouches[index].pageX - curRect.left,
-          ongoingTouches[index].pageY - curRect.top
-        );
-        context.lineTo(
-          touches[i].pageX - curRect.left,
-          touches[i].pageY - curRect.top
-        );
-        context.lineWidth = 4;
-        context.strokeStyle = "black";
-        context.stroke();
+        const lastX = ongoingTouches[index].pageX - curRect.left;
+        const lastY = ongoingTouches[index].pageY - curRect.top;
+        x = touches[i].pageX - curRect.left;
+        y = touches[i].pageY - curRect.top;
+        drawLine(context, lastX, lastY, x, y);
 
         ongoingTouches.splice(index, 1, copyTouch(touches[i]));
         // Save for resize
-        currentStroke.push(
-          coordsToFrac(
-            touches[i].pageX - curRect.left,
-            touches[i].pageY - curRect.top
-          )
-        );
+        currentStroke.push(coordsToFrac(x, y));
       } else {
         console.log("cant figure out where to continue with touch");
       }
@@ -193,40 +186,14 @@ export const drawingHandlers = () => {
   });
   drwScreenPicture.addEventListener("touchend", (e) => {
     e.preventDefault();
-    const touches = e.changedTouches;
-    for (let i = 0; i < touches.length; i++) {
-      let index = ongoingTouchIndexById(touches[i].identifier);
-
-      if (index >= 0) {
-        context.lineWidth = 4;
-        context.fillStyle = "black";
-        context.beginPath();
-        context.moveTo(
-          ongoingTouches[index].pageX - curRect.left,
-          ongoingTouches[index].pageY - curRect.top
-        );
-        context.lineTo(
-          touches[i].pageX - curRect.left,
-          touches[i].pageY - curRect.top
-        );
-        ongoingTouches.splice(index, 1);
-        // Save for resize
-        currentStroke.push(
-          coordsToFrac(
-            touches[i].pageX - curRect.left,
-            touches[i].pageY - curRect.top
-          )
-        );
-        // Make deep copy
-        const currentStrokeCopy = JSON.parse(JSON.stringify(currentStroke));
-        drawingCoords.push(currentStrokeCopy);
-        // Send stroke
-        sendDrawingStroke(currentStrokeCopy);
-        currentStroke = [];
-      } else {
-        console.log("cant figure out where to continue with touch");
-      }
-    }
+    isDrawing = false;
+    x = 0;
+    y = 0;
+    // Make deep copy
+    const currentStrokeCopy = JSON.parse(JSON.stringify(currentStroke));
+    // Send stroke
+    sendDrawingStroke(currentStrokeCopy);
+    currentStroke = [];
   });
 };
 

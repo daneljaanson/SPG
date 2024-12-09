@@ -1,6 +1,7 @@
 const PlayerModel = require("../models/playerModel");
 const GameStateModel = require("../models/gameStateModel");
 const AppStateModel = require("../models/appStateModel");
+const AppError = require("../utils/appError");
 
 ///////////////////////////
 // Create or join a room
@@ -131,7 +132,7 @@ exports.commentSSE = (req, res) => {
   };
   setTimeout(() => {
     res.write(`data: ${JSON.stringify(data)}\n\n`);
-    Room.sendComment(playerId, "pasinga");
+    Room.checkSendComment(playerId, "pasinga");
   }, 2000);
 
   req.on("close", () => {
@@ -158,7 +159,7 @@ exports.sendComment = (req, res) => {
   const Room = AppStateModel.getRoom(req.params.code);
   const playerId = req.params.playerId;
   // Send comment signal
-  Room.sendComment(playerId, req.body.comment);
+  Room.checkSendComment(playerId, req.body.comment);
 
   res
     .status(200)
@@ -168,12 +169,11 @@ exports.sendComment = (req, res) => {
 // Send coordinates to players
 exports.sendCoords = (req, res) => {
   const Room = AppStateModel.getRoom(req.params.code);
+  if (!Room) return new AppError("Room not found!", 404);
   const playerId = req.params.playerId;
 
   // Send coordinate signal
   Room.sendCoordinates(playerId, req.body.stroke);
 
-  res
-    .status(200)
-    .json({ status: "success", data: { message: "Comment sent" } });
+  res.status(200).json({ status: "success", data: { message: "Coord sent" } });
 };

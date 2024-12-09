@@ -58,7 +58,7 @@ body {
   text-align: center;
   position: absolute;
 
-  transition: all var(--scroll-time) cubic-bezier(0.83, 0, 0.17, 1);
+  transition: transform var(--scroll-time) cubic-bezier(0.83, 0, 0.17, 1);
 
   &--intro {
     transform: translateX(0);
@@ -108,4 +108,18 @@ body {
   font-size: 3rem;
   opacity: 1;
   transition: all 0.2s;
+}
+
+.pointAlert {
+  padding: 1rem;
+  box-shadow: 0 0.5rem 1rem rgba(#000, 0.2);
+
+  background-color: #fff;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 10rem;
+  opacity: 1;
+  transition: all 0.1s;
 }

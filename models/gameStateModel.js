@@ -1,5 +1,5 @@
 "use strict";
-
+const nodeUtilities = require("../utils/nodeUtilities.js");
 const AppState = require("./appStateModel");
 
 ////////////////////////
@@ -12,7 +12,6 @@ class GameState {
     this.pictureSSEResponses = {};
     this.commentSSEResponses = {};
     this.stateSSEResponses = {};
-    this.currentWord = "";
     this.gameState = "lobby";
     // add room to rooms list and get key
     this.roomKey = AppState.newRoom(this);
@@ -47,10 +46,8 @@ class GameState {
     // Start round
     if (stateName === "round-start") {
       this.gameState = stateName;
-      // Choose drawer
-      this.pickNewDrawer();
       // Set new word
-      this.currentWord = AppState.randomWord();
+      this.assignWords();
       // Send start to players
       this.sendRoundStart();
       return;
@@ -71,26 +68,46 @@ class GameState {
     }
   }
 
-  pickNewDrawer() {
-    // List of players with the lowest score
-    // Returns [[playerId, timesDrawn], [...] ] ascending
-    const allPlayers = Object.values(this.players)
-      .map((playerObj) => [playerObj.id, playerObj.timesDrawn])
-      .sort((a, b) => {
-        b[1] - a[1];
-      });
-    console.log("allplayers ", allPlayers);
-    // Pick out players who have drawn the least
-    const drawers = allPlayers.filter((arr) => arr[1] === allPlayers[0][1]);
-    console.log("lowest wins players", drawers);
+  // pickNewDrawer() {
+  //   // List of players with the lowest score
+  //   // Returns [[playerId, timesDrawn], [...] ] ascending
+  //   const allPlayers = Object.values(this.players)
+  //     .map((playerObj) => [playerObj.id, playerObj.timesDrawn])
+  //     .sort((a, b) => {
+  //       b[1] - a[1];
+  //     });
+  //   console.log("allplayers ", allPlayers);
+  //   // Pick out players who have drawn the least
+  //   const drawers = allPlayers.filter((arr) => arr[1] === allPlayers[0][1]);
+  //   console.log("lowest wins players", drawers);
 
-    // Choose a random player
-    const drawerId = drawers[Math.trunc(Math.random() * drawers.length)][0];
-    this.players[drawerId].timesDrawn += 1;
-    this.players[drawerId].isDrawing = true;
+  //   // Choose a random player
+  //   const drawerId = drawers[Math.trunc(Math.random() * drawers.length)][0];
+  //   this.players[drawerId].timesDrawn += 1;
+  //   this.players[drawerId].isDrawing = true;
 
-    return;
+  //   return;
+  // }
+
+  // Generate new words for all players
+  assignWords() {
+    Object.values(this.players).forEach((playerObj) => {
+      playerObj.word = AppState.randomWord();
+    });
   }
+
+  // Assign a word to the specific player and send it to them
+  assignSendWord(playerId) {
+    this.players[playerId].word = AppState.randomWord();
+    this.stateSSEResponses[playerId].write(
+      `data: ${JSON.stringify({
+        status: "new-word",
+        word: this.players[playerId].word,
+      })}\n\n`
+    );
+  }
+
+  sendWord(playerId) {}
 
   sendRoundStart() {
     // Top players for score keeping
@@ -99,20 +116,12 @@ class GameState {
 
     // Send to all players
     for (const [playerId, playerObj] of Object.entries(this.players)) {
-      // Role for player
-      const role = playerObj.isDrawing ? "Drawistador" : "La Guesserinio";
-      // Text for info based on role
-      let text;
-      if (playerObj.isDrawing) text = `Draw: ${this.currentWord}`;
-      if (!playerObj.isDrawing) text = `Guess the drawing!`;
       // Send data to all
       const data = {
         status: this.gameState,
         players,
-        role,
-        text,
+        word: playerObj.word,
       };
-      console.log("in sendroundstart", playerId);
       this.stateSSEResponses[playerId].write(
         `data: ${JSON.stringify(data)}\n\n`
       );
@@ -155,27 +164,69 @@ class GameState {
     });
   }
 
-  sendComment(playerId, comment) {
+  // Check if comment is answer and send it to all
+  checkSendComment(guesserCommenterId, comment) {
+    const commentLower = comment.toLowerCase();
+    let isCorrect = false;
+    // Send response with status "correct-guess" and drawer's id (to delete image)
+    let status = "comment received";
+    let drawerId = "";
+    let players = [];
+    // Winner names to display winners in client
+    const winnerNames = [];
+    for (const [playerId, playerObj] of Object.entries(this.players)) {
+      // if guess matches, give point to guesser and drawer
+      //&& playerId !== guesserCommenterId
+      if (playerObj.word === commentLower) {
+        this.players[playerId].points++;
+        this.players[guesserCommenterId].points++;
+        isCorrect = true;
+        drawerId = nodeUtilities.publicId(playerId);
+        winnerNames.push(this.players[playerId].name);
+        this.assignSendWord(playerId);
+      }
+    }
+    // Also add guesser
+    if (isCorrect) {
+      winnerNames.push(this.players[guesserCommenterId].name);
+      status = "correct-guess";
+      players = this.getTopPlayers(3);
+    }
+
     Object.values(this.commentSSEResponses).forEach((playerRes) => {
       playerRes.write(
         `data: ${JSON.stringify({
+          status,
+          players,
+          drawerId,
+          winnerNames,
           comment,
-          name: this.players[playerId].name,
+          name: this.players[guesserCommenterId].name,
         })}\n\n`
       );
     });
   }
 
+  // Send public ids with painting strokes ( to differentiate between paintings )
   sendCoordinates(drawerId, stroke) {
+    const id = this.players[drawerId].publicId;
+    Object.values(this.pictureSSEResponses).forEach((playerRes) => {
+      playerRes.write(
+        `data: ${JSON.stringify({
+          id,
+          stroke,
+        })}\n\n`
+      );
+    });
     for (const [playerId, playerRes] of Object.entries(
       this.pictureSSEResponses
     )) {
-      if (playerId !== drawerId)
-        playerRes.write(
-          `data: ${JSON.stringify({
-            stroke,
-          })}\n\n`
-        );
+      playerRes.write(
+        `data: ${JSON.stringify({
+          id,
+          stroke,
+        })}\n\n`
+      );
     }
   }
 }

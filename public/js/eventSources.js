@@ -1,13 +1,14 @@
 "use strict";
 
 import { getRoomAndPlayer } from "./utilities.js";
-import { drawStroke } from "./drawing.js";
+import { drawStroke, saveStroke, resize } from "./drawing.js";
 
 // Screens
 const introScreen = document.querySelector(".container--intro");
 const roomScreen = document.querySelector(".container--room");
 const gameScreen = document.querySelector(".container--game");
 const drwScreenPicture = document.querySelector("#drwScreenPicture");
+const alertContainer = document.querySelector(".alert-container");
 
 // Lists
 const playerListLobbyEl = document.querySelector(".room__player-list");
@@ -21,6 +22,14 @@ const roleLabelEl = document.querySelector(".drwScreen__picture--role");
 const infoTextEl = document.querySelector(".game__info--info-text");
 
 ("use strict");
+
+const updatePlayerList = (playerList) => {
+  // Add top players and scores to player list
+  playerListGameEl.innerHTML = "";
+  playerList.forEach(([name, points]) => {
+    playerListGameEl.innerHTML += `<li>${name}<span>${points}</span></li>`;
+  });
+};
 
 // Actively update player count
 export const initSource = function () {
@@ -84,7 +93,10 @@ const pictureSource = () => {
     console.log("in picturesource", event);
     const data = JSON.parse(event.data);
     //  display coords
-    if (data.stroke) drawStroke(data.stroke);
+    if (data.stroke) {
+      saveStroke(data.id, data.stroke);
+      drawStroke(data.stroke);
+    }
   };
 
   eventSource.onerror = (error) => {
@@ -101,6 +113,47 @@ const commentSource = () => {
 
   eventSource.onmessage = (event) => {
     const data = JSON.parse(event.data);
+    // If correct guess, display something
+    if (data.status === "correct-guess") {
+      ////////////////////////////
+      /// MAKE NEW ALERT ELEMENT
+
+      // Make new success element
+      const successEl = document.createElement("p");
+      successEl.setAttribute("class", "pointAlert");
+      // Find available alert id
+      let count = 0;
+      console.log("alertcontainer", alertContainer);
+
+      Object.values(alertContainer.children).forEach((child) => {
+        console.log("in alertcontainer", child);
+        if (child.getAttribute("data-alert" === count)) count++;
+      });
+      successEl.setAttribute("data-alert", count);
+      // Set success element text
+      const winnerNames = data.winnerNames;
+      winnerNames[-1] = "and " + winnerNames[-1];
+      let winnerString = winnerNames.join(", ");
+
+      successEl.textContent = `Points for ${winnerString}.`;
+
+      alertContainer.appendChild(successEl);
+      const successNode = document.querySelector(
+        `.pointAlert[data-alert="${count}"]`
+      );
+      console.log("siccessmnode", successNode);
+      setTimeout(() => {
+        alertContainer.removeChild(successNode);
+      }, 2000);
+
+      ////////////////////////////
+      /// UPDATE PLAYER LIST
+      updatePlayerList(data.players);
+
+      ////////////////////////////
+      /// UPDATE INFO TEXT
+    }
+
     // Add new comment to ul
     console.log("commentdata", data);
     const commenterName = data.name ? `<strong>${data.name}:</strong>` : "";
@@ -126,22 +179,26 @@ const stateSource = () => {
       console.log(data);
 
       // Enable game screen
-      drwScreenPicture.style.userSelect = "auto";
+      // drwScreenPicture.style.userSelect = "auto";
       drwScreenPicture.style.pointerEvents = "auto";
       // Move to game screen
       roomScreen.style.transform = "translateX(-100%)";
       gameScreen.style.transform = "translateX(0)";
 
-      // Add top players and scores to player list
-      playerListGameEl.innerHTML = "";
-      data.players.forEach(([name, points]) => {
-        playerListGameEl.innerHTML += `<li>${name}<span>${points}</span></li>`;
-      });
+      // Resize canvas ( needs to be updated after css transition  )
+      setTimeout(() => {
+        resize();
+      }, 2000);
+
+      updatePlayerList(data.players);
 
       // Show role and info
       roleLabelEl.textContent = data.role;
-      infoTextEl.textContent = data.text;
+      infoTextEl.textContent = `Draw: ${data.word}`;
       // Start guessing timer
+    }
+    if (data.status === "new-word") {
+      infoTextEl.textContent = `Draw: ${data.word}`;
     }
   };
 

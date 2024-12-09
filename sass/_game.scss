@@ -17,15 +17,9 @@
 }
 
 .drwScreen {
-  // Position self
-  // grid-column: game-start / game-end;
-  // grid-row: 1 / span 1;
-
   // Set up grid
   display: flex;
   gap: 1rem;
-
-  // grid-template-columns: [edge-start tools-start] min-content [tools-end game-start] min-content [game-end colors-start] min-content [colors-end edge-end];
 
   & > * {
     border: 1px solid #000;
@@ -38,7 +32,6 @@
     position: relative;
     height: calc(100vh - (2 * var(--screen-padding)));
     aspect-ratio: 3/4;
-    // grid-column: game-start / game-end;
 
     // height: 70vh;
     @include m.respond(breakpoint-1) {
@@ -67,7 +60,6 @@
   }
 
   &__colors {
-    // grid-column: colors-start / colors-end;
   }
 }
 
