@@ -25,6 +25,9 @@ router
 router
   .route("/xy/:code/:playerId")
   .post(validator.validate, gameController.sendCoords);
+router.route("/new-word/:code/:playerId").get(gameController.refreshWord);
+
+// SSE
 router.route("/pictureSSE/:code/:playerId").get(gameController.pictureSSE);
 router.route("/commentSSE/:code/:playerId").get(gameController.commentSSE);
 router.route("/stateSSE/:code/:playerId").get(gameController.stateSSE);

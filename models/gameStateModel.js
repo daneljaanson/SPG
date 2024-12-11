@@ -13,6 +13,7 @@ class GameState {
     this.commentSSEResponses = {};
     this.stateSSEResponses = {};
     this.gameState = "lobby";
+    this.scoreLimit = 10;
     // add room to rooms list and get key
     this.roomKey = AppState.newRoom(this);
   }
@@ -37,7 +38,6 @@ class GameState {
       // Set points to 0
       Object.values(this.players).forEach((playerObj) => {
         playerObj.points = 0;
-        playerObj.timesDrawn = 0;
       });
       // Start round
       this.setState("round-start");
@@ -55,10 +55,7 @@ class GameState {
     // End round
     if (stateName === "round-end") {
       this.gameState = stateName;
-      // Set all drawers to false
-      Object.values(this.players).forEach(
-        (playerObj) => (playerObj.isDrawing = false)
-      );
+      this.sendRoundEnd();
       return;
     }
     // Game end
@@ -103,11 +100,10 @@ class GameState {
       `data: ${JSON.stringify({
         status: "new-word",
         word: this.players[playerId].word,
+        id: nodeUtilities.publicId(playerId),
       })}\n\n`
     );
   }
-
-  sendWord(playerId) {}
 
   sendRoundStart() {
     // Top players for score keeping
@@ -116,7 +112,6 @@ class GameState {
 
     // Send to all players
     for (const [playerId, playerObj] of Object.entries(this.players)) {
-      // Send data to all
       const data = {
         status: this.gameState,
         players,
@@ -126,6 +121,18 @@ class GameState {
         `data: ${JSON.stringify(data)}\n\n`
       );
     }
+  }
+
+  sendRoundEnd() {
+    // Send game end signal and data to players
+    Object.values(this.stateSSEResponses).forEach((playerRes) => {
+      playerRes.write(
+        `data: ${JSON.stringify({
+          status: "round-end",
+          players: this.getTopPlayers(),
+        })}\n\n`
+      );
+    });
   }
 
   addPlayer(Player) {
@@ -164,31 +171,48 @@ class GameState {
     });
   }
 
+  // If added score hits limit, send game end signal
+  addCheckScore(...playerIds) {
+    let limitReached = false;
+    // Add score to players
+    playerIds.forEach((playerId) => {
+      this.players[playerId].points++;
+      if (this.players[playerId].points >= this.scoreLimit) limitReached = true;
+    });
+    if (!limitReached) return;
+    // Find winners
+    const winnerArr = [];
+    Object.values(this.players).forEach((playerObj) => {
+      if (playerObj.score >= this.scoreLimit) winnerArr.push(playerObj);
+    });
+    // RESET GAME TO ROUND START
+    this.setState("round-end");
+  }
   // Check if comment is answer and send it to all
   checkSendComment(guesserCommenterId, comment) {
     const commentLower = comment.toLowerCase();
     let isCorrect = false;
     // Send response with status "correct-guess" and drawer's id (to delete image)
     let status = "comment received";
-    let drawerId = "";
     let players = [];
     // Winner names to display winners in client
-    const winnerNames = [];
+    const winners = { guesser: "", drawer: "", drawerId: "", word: "" };
     for (const [playerId, playerObj] of Object.entries(this.players)) {
       // if guess matches, give point to guesser and drawer
+      // TODO add later vvvvvvvvvvv
       //&& playerId !== guesserCommenterId
       if (playerObj.word === commentLower) {
-        this.players[playerId].points++;
-        this.players[guesserCommenterId].points++;
+        this.addCheckScore(playerId, guesserCommenterId);
+        winners.guesser = this.players[guesserCommenterId].name;
+        winners.drawer = this.players[playerId].name;
+        winners.drawerId = nodeUtilities.publicId(playerId);
+        winners.word = this.players[playerId].word;
         isCorrect = true;
-        drawerId = nodeUtilities.publicId(playerId);
-        winnerNames.push(this.players[playerId].name);
         this.assignSendWord(playerId);
+        break;
       }
     }
-    // Also add guesser
     if (isCorrect) {
-      winnerNames.push(this.players[guesserCommenterId].name);
       status = "correct-guess";
       players = this.getTopPlayers(3);
     }
@@ -198,8 +222,7 @@ class GameState {
         `data: ${JSON.stringify({
           status,
           players,
-          drawerId,
-          winnerNames,
+          winners,
           comment,
           name: this.players[guesserCommenterId].name,
         })}\n\n`
@@ -208,26 +231,16 @@ class GameState {
   }
 
   // Send public ids with painting strokes ( to differentiate between paintings )
-  sendCoordinates(drawerId, stroke) {
+  sendCoordinates(drawerId, strokeObj) {
     const id = this.players[drawerId].publicId;
     Object.values(this.pictureSSEResponses).forEach((playerRes) => {
       playerRes.write(
         `data: ${JSON.stringify({
           id,
-          stroke,
+          strokeObj,
         })}\n\n`
       );
     });
-    for (const [playerId, playerRes] of Object.entries(
-      this.pictureSSEResponses
-    )) {
-      playerRes.write(
-        `data: ${JSON.stringify({
-          id,
-          stroke,
-        })}\n\n`
-      );
-    }
   }
 }
 

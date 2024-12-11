@@ -1,4 +1,5 @@
 import { sendDrawingStroke } from "./game.js";
+import { randomColors } from "./utilities.js";
 ("use strict");
 
 // TESTO
@@ -8,22 +9,36 @@ const roleLabelEl = document.querySelector(".drwScreen__picture--role");
 const drwScreenContainer = document.querySelector(
   ".drwScreen__picture-container"
 );
+const toolContainer = document.querySelector(".drwScreen__tools");
+const colorContainer = document.querySelector(".drwScreen__colors");
 // Canvas
 const drwScreenPicture = document.querySelector("#drwScreenPicture");
+
+//////////////////////////////////////////////////////
+// Variables
+
 // Context
 let context;
 // Save last rect
 let curRect;
 
-// Variables
-const ongoingTouches = [];
 let isDrawing = false;
 let x = 0;
 let y = 0;
 // { playerId: [[[x, y], [...]], [...]]}
-const drawingCoords = [];
+const drawingCoords = {};
+// { drawingcoords, toolOptions }
+const guessedDrawings = [];
 // [[x, y], [...]]
 let currentStroke = [];
+
+// Possible tool and color options
+const strokeStyleArr = randomColors(8);
+strokeStyleArr.unshift("white", "black");
+const lineWidthArr = [1, 3, 5, 7, 9, 11, 13, 15];
+
+// Save tool and color
+const toolOptions = { lineWidth: 5, strokeStyle: "black" };
 
 ////////////////////////////////////////////////////////
 // Functions
@@ -44,42 +59,50 @@ const fracToCoords = (fracX, fracY) => {
   ];
 };
 
-// Some browsers want a new object
-const copyTouch = function ({ identifier, pageX, pageY }) {
-  return { identifier, pageX, pageY };
-};
-
-// Find saved touch by id
-const ongoingTouchIndexById = function (idToFind) {
-  for (let i = 0; i < ongoingTouches.length; i++) {
-    const id = ongoingTouches[i].identifier;
-
-    if (id === idToFind) return i;
-  }
-  return -1; //not found
-};
-
+// Redraw paintings from all drawers
 const redrawPainting = (drawingCoords) => {
-  Object.values(drawingCoords).forEach((coordinates) => {
-    coordinates.forEach((stroke) => {
-      drawStroke(stroke);
+  Object.values(drawingCoords).forEach((strokeArr) => {
+    strokeArr.forEach((strokeObj) => {
+      drawStroke(strokeObj);
     });
   });
 };
 
-const drawLine = (context, x1, y1, x2, y2) => {
+// 0 is already drawn, previous line
+// 1 is current position
+// 2 is destination to draw to
+const drawLine = (context, x1, y1, x2, y2, options) => {
   context.beginPath();
-  context.strokeStyle = "black";
-  context.lineWidth = 1;
+  context.strokeStyle = options.strokeStyle;
+  context.lineWidth = options.lineWidth;
   context.moveTo(x1, y1);
   context.lineTo(x2, y2);
   context.stroke();
   context.closePath();
 };
 
+// Draw over the drawing with a red line
+const highlightDrawing = (drawerId) => {
+  drawingCoords[drawerId].forEach((strokeObj) => {
+    const modStrokeObj = {
+      coordinates: strokeObj.coordinates,
+      options: {
+        lineWidth: strokeObj.options.lineWidth + 1,
+        strokeStyle: "red",
+      },
+    };
+    drawStroke(modStrokeObj);
+  });
+};
+
 ////////////////////////////////////////////////////////
 // Exports
 ////////////////////////////////////////////////////////
+
+export const redrawPaintingPostGame = (context, rect) => {
+  // Get painting from saved
+  const painting = guessedDrawings[0];
+};
 
 // Update canvas size and redraw the painting
 export const resize = (e) => {
@@ -98,23 +121,80 @@ export const resize = (e) => {
 window.addEventListener("resize", resize);
 
 // Draw one mouse click cycle [[fracX, fracY],[..]]
-export const drawStroke = (stroke) =>
-  stroke.forEach(([fracX, fracY], i, arr) => {
+export const drawStroke = (strokeObj, strokeContext = context) =>
+  strokeObj.coordinates.forEach(([fracX, fracY], i, arr) => {
     if (i !== arr.length - 1) {
       const [x, y] = fracToCoords(fracX, fracY);
       const [nextX, nextY] = fracToCoords(arr[i + 1][0], arr[i + 1][1]);
-      drawLine(context, x, y, nextX, nextY);
+      drawLine(strokeContext, x, y, nextX, nextY, strokeObj.options);
     }
   });
 
-export const saveStroke = (playerId, stroke) => {
-  console.log("there is no player set: ", !drawingCoords[playerId]);
+//strokeObj is {coordinates: [], options: {}}
+export const saveStroke = (playerId, strokeObj) => {
   if (!drawingCoords[playerId]) drawingCoords[playerId] = [];
-  drawingCoords[playerId].push(stroke);
+  drawingCoords[playerId].push(strokeObj);
+};
+
+// Combine correct guess info with drawing and save for game-end
+export const saveDrawing = async (drawingInfoObj, highlight = true) => {
+  const drawingsCopy = JSON.parse(JSON.stringify(drawingCoords));
+  const drawingInfoCopy = JSON.parse(JSON.stringify(drawingInfoObj));
+  const drawingObj = {
+    drawings: drawingsCopy,
+    info: drawingInfoCopy,
+  };
+  guessedDrawings.push(drawingObj);
+  if (highlight) {
+    highlightDrawing(drawingObj.info.drawerId);
+  }
+
+  return;
+};
+
+export const deleteDrawings = (...drawerIds) => {
+  if (drawerIds.length === 0) drawingCoords = {};
+  if (drawerIds.length > 0) {
+    drawerIds.forEach((drawerId) => {
+      drawingCoords[drawerId] = [];
+    });
+  }
+  resize();
 };
 
 // Add event listeners to canvas to draw and save drawing coordinates
 export const drawingHandlers = () => {
+  /////////////////////////////////////////////////////////
+  // Toolbars
+
+  ///////////
+  // Colors
+  // Make HTML elements
+  colorContainer.innerHTML = "";
+  strokeStyleArr.forEach((color, i) => {
+    colorContainer.innerHTML += `<div class="drwScreen__color" style="background-color:${color}"></div>`;
+  });
+  // Add event handlers to swap style
+  Object.values(colorContainer.children).forEach((child) => {
+    child.addEventListener("click", (e) => {
+      toolOptions.strokeStyle = child.style.backgroundColor;
+    });
+  });
+
+  ///////////
+  // Tool sizes
+  // Make HTML elements
+  toolContainer.innerHTML = "";
+  lineWidthArr.forEach((toolSize, i) => {
+    const sizeRem = (toolSize / 10).toFixed(1);
+    toolContainer.innerHTML += `<div class="drwScreen__tool" data-size="${toolSize}"><span class="tool-icon" style="height:${sizeRem}rem; width:${sizeRem}rem"></span></div>`;
+  });
+  // Add event handlers to swap tool size
+  Object.values(toolContainer.children).forEach((child) => {
+    child.addEventListener("click", (e) => {
+      toolOptions.lineWidth = Number(child.getAttribute("data-size"));
+    });
+  });
   /////////////////////////////////////////////////////////
   // Mouse
   drwScreenPicture.addEventListener("mousedown", (e) => {
@@ -125,7 +205,7 @@ export const drawingHandlers = () => {
   });
   drwScreenPicture.addEventListener("mousemove", (e) => {
     if (isDrawing) {
-      drawLine(context, x, y, e.offsetX, e.offsetY);
+      drawLine(context, x, y, e.offsetX, e.offsetY, toolOptions);
       x = e.offsetX;
       y = e.offsetY;
       currentStroke.push(coordsToFrac(x, y));
@@ -140,7 +220,7 @@ export const drawingHandlers = () => {
     // Make deep copy
     const currentStrokeCopy = JSON.parse(JSON.stringify(currentStroke));
     // Send stroke
-    sendDrawingStroke(currentStrokeCopy);
+    sendDrawingStroke(currentStrokeCopy, toolOptions);
     currentStroke = [];
   });
 
@@ -149,50 +229,35 @@ export const drawingHandlers = () => {
   drwScreenPicture.addEventListener("touchstart", (e) => {
     e.preventDefault();
 
-    const touches = e.changedTouches;
-    console.log(touches);
-    for (let i = 0; i < touches.length; i++) {
-      // Set current X
-      x = touches[i].pageX - curRect.left;
-      y = touches[i].pageY - curRect.top;
-      //
-      ongoingTouches.push(copyTouch(touches[i]));
-      drawLine(context, x, y, x, y);
-      // Save for resize
-      currentStroke.push(coordsToFrac(x, y));
-    }
+    const touch = e.changedTouches[0];
+    x = touch.pageX - curRect.left;
+    y = touch.pageY - curRect.top;
+    currentStroke.push(coordsToFrac(x, y));
   });
   drwScreenPicture.addEventListener("touchmove", (e) => {
     e.preventDefault();
-    const touches = e.changedTouches;
-    for (let i = 0; i < touches.length; i++) {
-      const index = ongoingTouchIndexById(touches[i].identifier);
-
-      // Continue touch
-      if (index >= 0) {
-        const lastX = ongoingTouches[index].pageX - curRect.left;
-        const lastY = ongoingTouches[index].pageY - curRect.top;
-        x = touches[i].pageX - curRect.left;
-        y = touches[i].pageY - curRect.top;
-        drawLine(context, lastX, lastY, x, y);
-
-        ongoingTouches.splice(index, 1, copyTouch(touches[i]));
-        // Save for resize
-        currentStroke.push(coordsToFrac(x, y));
-      } else {
-        console.log("cant figure out where to continue with touch");
-      }
-    }
+    const touch = e.changedTouches[0];
+    drawLine(
+      context,
+      x,
+      y,
+      touch.pageX - curRect.left,
+      touch.pageY - curRect.top,
+      toolOptions
+    );
+    x = touch.pageX - curRect.left;
+    y = touch.pageY - curRect.top;
+    // Save for resize
+    currentStroke.push(coordsToFrac(x, y));
   });
   drwScreenPicture.addEventListener("touchend", (e) => {
     e.preventDefault();
-    isDrawing = false;
     x = 0;
     y = 0;
     // Make deep copy
     const currentStrokeCopy = JSON.parse(JSON.stringify(currentStroke));
     // Send stroke
-    sendDrawingStroke(currentStrokeCopy);
+    sendDrawingStroke(currentStrokeCopy, toolOptions);
     currentStroke = [];
   });
 };

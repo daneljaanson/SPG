@@ -59,7 +59,12 @@ html(lang="en")
                   .drwScreen__color.drwScreen__color--black
               .game__info
                 .game__info--info-box 
+                  .game__info--refresh-btn(type="button")
+                    span.game__info--refresh-counter
+                    svg.refresh-svg(xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" )
+                      path(stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99")
                   p.game__info--info-text You gotta know this!
+
                 ul.game__info--player-list
                   li exam
                   li ampleplayer2fs1
@@ -68,12 +73,14 @@ html(lang="en")
                   ul.game__info--comment-list
                 form.game__info--form(action="#")
                   input.game__info--input(type="text" name="comment" id="comment" placeholder="Write guess:" )
-                  button.game__info--btn(type="submit")
+                  button.game__info--btn(type="submit") >
 
 
         .container.container--round-end
           .container-inner
             h2.heading-secondary Round end screen
+            ul.round-end--winners 
+              li.round-end--winner
             button.btn Next game
 
         .container.container--game-end

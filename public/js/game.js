@@ -3,10 +3,18 @@
 import { showAlert } from "./alerts.js";
 import { getRoomAndPlayer } from "./utilities.js";
 
+// New word timer
+let wordTimer = 0;
+
 // Forms
 const commentForm = document.querySelector(".game__info--form");
 // Inputs
 const commentInput = document.querySelector("#comment");
+const svgEl = document.querySelector(".refresh-svg");
+// Spans
+const refreshCounterSpan = document.querySelector(
+  ".game__info--refresh-counter"
+);
 
 // Prevent refresh
 commentForm.addEventListener("submit", (e) => {
@@ -25,7 +33,6 @@ export const startGame = async () => {
 
 export const sendComment = async () => {
   // Create data
-  console.log("in send comment");
   const [code, id] = getRoomAndPlayer();
   const body = JSON.stringify({
     comment: commentInput.value,
@@ -44,17 +51,16 @@ export const sendComment = async () => {
     return showAlert("error", `Error: Comment could not be sent`);
 };
 
-export const sendDrawingStroke = async (currentDrawingStroke) => {
+export const sendDrawingStroke = async (currentDrawingStroke, toolOptions) => {
   if (currentDrawingStroke.length === 0) return;
   // Create data
   const [code, id] = getRoomAndPlayer();
+  // This is strokeObj
   const body = JSON.stringify({
-    stroke: currentDrawingStroke,
+    coordinates: currentDrawingStroke,
+    options: toolOptions,
   });
-  // Empty the input
-  commentInput.value = "";
   // Send comment to server
-  console.log("in send draw stroke");
   const response = await fetch(`/xy/${code}/${id}`, {
     method: "POST",
     body,
@@ -67,4 +73,23 @@ export const sendDrawingStroke = async (currentDrawingStroke) => {
 };
 
 // Send round end signal to server
-export const roundEnd = async () => {};
+export const updateWord = () => {
+  if (wordTimer === 0) {
+    const [code, id] = getRoomAndPlayer();
+    fetch(`/new-word/${code}/${id}`);
+    // Set word timer to 5 seconds
+    wordTimer = 5;
+    refreshCounterSpan.textContent = wordTimer;
+    svgEl.style.display = "none";
+    const intervalId = window.setInterval(() => {
+      wordTimer--;
+      refreshCounterSpan.textContent = wordTimer === 0 ? "" : wordTimer;
+      if (wordTimer === 0) {
+        window.clearInterval(intervalId);
+        svgEl.style.display = "block";
+      }
+    }, 1000);
+    return;
+  }
+  return showAlert("oops", `Wait ${wordTimer} seconds!`);
+};

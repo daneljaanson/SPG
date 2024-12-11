@@ -1,7 +1,6 @@
 const PlayerModel = require("../models/playerModel");
 const GameStateModel = require("../models/gameStateModel");
 const AppStateModel = require("../models/appStateModel");
-const AppError = require("../utils/appError");
 
 ///////////////////////////
 // Create or join a room
@@ -77,7 +76,7 @@ exports.lobbySSE = (req, res) => {
 exports.startSSE = (req, res) => {
   // Get room
   const Room = AppStateModel.getRoom(req.params.code);
-  // Start SSE
+  // Start client side SSE
   Room.startGameSSE();
 };
 
@@ -169,11 +168,22 @@ exports.sendComment = (req, res) => {
 // Send coordinates to players
 exports.sendCoords = (req, res) => {
   const Room = AppStateModel.getRoom(req.params.code);
-  if (!Room) return new AppError("Room not found!", 404);
   const playerId = req.params.playerId;
 
   // Send coordinate signal
-  Room.sendCoordinates(playerId, req.body.stroke);
+  Room.sendCoordinates(playerId, req.body);
 
   res.status(200).json({ status: "success", data: { message: "Coord sent" } });
+};
+
+// Refresh your word
+exports.refreshWord = (req, res) => {
+  const Room = AppStateModel.getRoom(req.params.code);
+  const playerId = req.params.playerId;
+
+  Room.assignSendWord(playerId);
+
+  res
+    .status(200)
+    .json({ status: "success", data: { message: "New word sent" } });
 };
