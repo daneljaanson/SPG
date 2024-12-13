@@ -78,15 +78,11 @@ html(lang="en")
 
         .container.container--round-end
           .container-inner
-            h2.heading-secondary Round end screen
-            ul.round-end--winners 
-              li.round-end--winner
-            button.btn Next game
-
-        .container.container--game-end
-          .container-inner
-            h2.heading-secondary Game end
-            button.btn New game
+            h2.round-end--header Round end
+            .round-end__info-container
+              ul.round-end__scores
+              .round-end__drawings
+            button.btn.round-end--btn-again(type="button") Play again
 
     script(src='./js/utilities.js' type="module")
     script(src='./js/index.js' type="module")
@@ -95,3 +91,4 @@ html(lang="en")
     script(src='./js/eventSources.js' type="module")
     script(src='./js/alerts.js' type="module")
     script(src='./js/drawing.js' type="module")
+    script(src='./js/afterGame.js' type="module")

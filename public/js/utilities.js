@@ -1,3 +1,4 @@
+// CODE LABEL CONTAINS PLAYER ID AND ROOM CODE
 export const getRoomAndPlayer = () => {
   const codeLabel = document.querySelector(".room__code");
   return [codeLabel.textContent, codeLabel.getAttribute("data-player")];
@@ -13,4 +14,13 @@ export const randomColors = (n) => {
     colorArr.push(randomColor());
   }
   return colorArr;
+};
+
+export const disableBtnFor = (seconds, ...btnElements) => {
+  btnElements.forEach((btnEl) => {
+    btnEl.disabled = true;
+    setTimeout(() => {
+      btnEl.disabled = false;
+    }, seconds * 1000);
+  });
 };

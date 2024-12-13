@@ -48,6 +48,7 @@ app.use(
           "192.168.1.149:3000/js/",
           "192.168.1.149:3000/",
         ],
+        "img-src": ["'self'", "data:", "blob:"],
 
         upgradeInsecureRequests: null,
       },

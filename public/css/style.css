@@ -110,19 +110,6 @@ body {
   transition: all 0.2s;
 }
 
-.pointAlert {
-  padding: 1rem;
-  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.2);
-  background-color: #fff;
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  font-size: 10rem;
-  opacity: 1;
-  transition: all 0.1s;
-}
-
 .intro {
   margin-top: 5rem;
   display: flex;
@@ -546,6 +533,38 @@ body {
 .game__info--btn {
   width: 5rem;
   height: 5rem;
+}
+
+.round-end--header {
+  font-size: 3rem;
+}
+.round-end__scores {
+  padding: 1rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, 15rem);
+}
+.round-end__score {
+  font-size: 2.4rem;
+  display: inline-block;
+}
+.round-end__score span {
+  text-align: right;
+  font-size: 3rem;
+  font-weight: 700;
+}
+.round-end__drawings {
+  display: flex;
+  max-height: 50rem;
+  overflow: hidden;
+  overflow-x: scroll;
+}
+.round-end__drawing--img {
+  user-select: none;
+  max-height: 30rem;
+}
+.round-end__drawing--text {
+  padding: 0.5rem;
+  font-size: 1.6rem;
 }
 
 /*# sourceMappingURL=style.css.map */

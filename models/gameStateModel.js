@@ -13,7 +13,7 @@ class GameState {
     this.commentSSEResponses = {};
     this.stateSSEResponses = {};
     this.gameState = "lobby";
-    this.scoreLimit = 10;
+    this.scoreLimit = 2;
     // add room to rooms list and get key
     this.roomKey = AppState.newRoom(this);
   }
@@ -59,7 +59,7 @@ class GameState {
       return;
     }
     // Game end
-    if (stateName === "game-end") {
+    if (stateName === "lobby") {
       this.gameState = stateName;
       return;
     }
@@ -130,6 +130,19 @@ class GameState {
         `data: ${JSON.stringify({
           status: "round-end",
           players: this.getTopPlayers(),
+        })}\n\n`
+      );
+    });
+  }
+
+  // Moves all players to lobby screen
+  sendGameRestart() {
+    this.setState("lobby");
+    // All players must close all event sources and re-initialize initial sse
+    Object.values(this.stateSSEResponses).forEach((playerRes) => {
+      playerRes.write(
+        `data: ${JSON.stringify({
+          status: "lobby",
         })}\n\n`
       );
     });

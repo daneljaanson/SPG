@@ -13,12 +13,11 @@ router
   .post(validator.validate, gameController.joinRoom);
 router.route("/join/:code").post(validator.validate, gameController.joinRoom);
 
-//lobby
-router.route("/lobbySSE/:code/:playerId").get(gameController.lobbySSE);
-
-//game
-router.route("/play/:code").get(gameController.startSSE);
+// lobby
 router.route("/play/:code/ok").get(gameController.startGame);
+
+// game
+router.route("/play/:code").get(gameController.startSSE);
 router
   .route("/comment/:code/:playerId")
   .post(validator.validate, gameController.sendComment);
@@ -27,7 +26,11 @@ router
   .post(validator.validate, gameController.sendCoords);
 router.route("/new-word/:code/:playerId").get(gameController.refreshWord);
 
+// postgame
+router.route("/play/:code/lobby").get(gameController.playAgain);
+
 // SSE
+router.route("/lobbySSE/:code/:playerId").get(gameController.lobbySSE);
 router.route("/pictureSSE/:code/:playerId").get(gameController.pictureSSE);
 router.route("/commentSSE/:code/:playerId").get(gameController.commentSSE);
 router.route("/stateSSE/:code/:playerId").get(gameController.stateSSE);

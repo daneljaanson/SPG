@@ -1,0 +1,38 @@
+.round-end {
+  &--header {
+    font-size: 3rem;
+  }
+  &__info-container {
+  }
+  &__scores {
+    padding: 1rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, 15rem);
+  }
+  &__score {
+    font-size: 2.4rem;
+    display: inline-block;
+    span {
+      text-align: right;
+      font-size: 3rem;
+      font-weight: 700;
+    }
+  }
+
+  &__drawings {
+    display: flex;
+    max-height: 50rem;
+    overflow: hidden;
+    overflow-x: scroll;
+  }
+  &__drawing {
+    &--img {
+      user-select: none;
+      max-height: 30rem;
+    }
+    &--text {
+      padding: 0.5rem;
+      font-size: 1.6rem;
+    }
+  }
+}

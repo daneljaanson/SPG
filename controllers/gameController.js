@@ -187,3 +187,22 @@ exports.refreshWord = (req, res) => {
     .status(200)
     .json({ status: "success", data: { message: "New word sent" } });
 };
+
+exports.playAgain = (req, res) => {
+  const Room = AppStateModel.getRoom(req.params.code);
+  if (!Room.gameState === "round-end") {
+    res
+      .status(403)
+      .json({
+        status: "error",
+        data: { message: "Cannot be used at this time" },
+      });
+    return;
+  }
+
+  Room.sendGameRestart();
+
+  res
+    .status(200)
+    .json({ status: "success", data: { message: "New word sent" } });
+};

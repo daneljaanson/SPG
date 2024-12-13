@@ -8,14 +8,16 @@ const introScreen = document.querySelector(".container--intro");
 const roomScreen = document.querySelector(".container--room");
 const gameScreen = document.querySelector(".container--game");
 const afterRoundScreen = document.querySelector(".container--round-end");
-const afterGameScreen = document.querySelector(".container--game-end");
 const drwScreenPicture = document.querySelector("#drwScreenPicture");
+
+// Containers
+const drawingListEl = document.querySelector(".round-end__drawings");
 
 // Lists
 const playerListLobbyEl = document.querySelector(".room__player-list");
 const playerListGameEl = document.querySelector(".game__info--player-list");
 const commentListEl = document.querySelector(".game__info--comment-list");
-const winnerListEl = document.querySelector(".round-end--winners");
+const roundEndScoresEl = document.querySelector(".round-end__scores");
 
 // Labels
 const roleLabelEl = document.querySelector(".drwScreen__picture--role");
@@ -25,6 +27,7 @@ const infoTextEl = document.querySelector(".game__info--info-text");
 
 ("use strict");
 let curScreenName = "intro";
+let gameEventSources;
 
 const updatePlayerList = (playerList) => {
   // Add top players and scores to player list
@@ -41,13 +44,11 @@ const nextScreen = (screenName) => {
     room: roomScreen,
     game: gameScreen,
     afterRound: afterRoundScreen,
-    afterGame: afterGameScreen,
   };
   // Hide all screens besides next and current
   // Set display to auto on cur and next screen
   for (const [name, screenEl] of Object.entries(screens)) {
     if (screenName === name || name === curScreenName) {
-      console.log(name, screenName);
       screenEl.style.display = "block";
       continue;
     }
@@ -58,13 +59,18 @@ const nextScreen = (screenName) => {
   setTimeout(() => {
     screens[curScreenName].style.transform = "translateX(-100%)";
     screens[screenName].style.transform = "translateX(0%)";
-  }, 1);
+  }, 50);
   setTimeout(() => {
     const saveCurScreen = JSON.parse(JSON.stringify(curScreenName));
     screens[saveCurScreen].style.display = "none";
     console.log("closed" + curScreenName);
     curScreenName = screenName;
   }, 1500);
+};
+
+// Close all sources
+const closeSources = () => {
+  Object.values(gameEventSources).forEach((eventSource) => eventSource.close());
 };
 
 // Actively update player count
@@ -86,9 +92,11 @@ export const initSource = function () {
       // Move to the room screen
     } else if (data.status === "init") {
       nextScreen("room");
+      // Delete old pictures
+      drawingListEl.innerHTML = "";
       // On game start, start gameSSE
     } else if (data.status === "game-start") {
-      const gameEventSource = gameSources();
+      gameEventSources = gameSources();
       return setTimeout(() => {
         eventSource.close();
       }, 5000);
@@ -183,13 +191,39 @@ const commentSource = () => {
 
       ////////////////////////////
       /// SAVE WHOLE DRAWING AND REMOVE GUESSED IMAGE
-      const drawingInfo = {
-        drawer: data.winners.drawer,
-        drawerId: data.winners.drawerId,
-        guesser: data.winners.guesser,
-        word: data.winners.word,
-      };
-      drawing.saveDrawing(drawingInfo);
+      // Add saved image to round-end list. Converts canvas drawing to png
+      drwScreenPicture.toBlob((blob) => {
+        // Create new elements
+        const newDiv = document.createElement("div");
+        newDiv.classList.add("round-end__drawing");
+
+        const newP = document.createElement("p");
+        newP.textContent = `Word: ${data.winners.word} by ${data.winners.drawer}. Guessed by: ${data.winners.guesser}`;
+        newP.classList.add("round-end__drawing--text");
+
+        ////////////////////////////
+        // Make and configure image
+        const newImg = document.createElement("img");
+        newImg.classList.add("round-end__drawing--img");
+
+        // Create png url from blob
+        const url = URL.createObjectURL(blob);
+
+        // newImg.onload = () => {
+        //   // no longer need to read the blob so it's revoked
+        //   URL.revokeObjectURL(url);
+        // };
+        newImg.src = url;
+
+        // Insert elements to dom
+        newDiv.append(newImg);
+        newDiv.append(newP);
+        drawingListEl.append(newDiv);
+      });
+
+      ////////////////////////////
+      /// HIGHLIGHT DRAWING
+      drawing.highlightDrawing(data.winners.drawerId);
     }
 
     // Scroll to end
@@ -237,8 +271,20 @@ const stateSource = () => {
     if (data.status === "round-end") {
       nextScreen("afterRound");
       // Delete everything drawn
-      drawing.deleteDrawings();
-      // List some saved drawings
+      setTimeout(() => {
+        drawing.deleteDrawings();
+      }, 5000);
+      // Get player list for game end score list
+      roundEndScoresEl.innerHTML = "";
+      data.players.forEach(([name, points]) => {
+        roundEndScoresEl.innerHTML += `<li class="round-end__score">${name}: <span>${points}</span></li>`;
+      });
+    }
+    // After game, return to lobby screen
+    if (data.status === "lobby") {
+      nextScreen("lobby");
+      closeSources();
+      initSource();
     }
   });
 

@@ -93,12 +93,12 @@
 .drwScreen__tool {
   width: 2.5rem;
   height: 5rem;
+  position: relative;
 
   @include m.respond(breakpoint-1) {
     width: 5rem;
     height: 2.5rem;
   }
-  position: relative;
   .tool-icon {
     position: absolute;
     top: 50%;

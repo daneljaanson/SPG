@@ -13,8 +13,6 @@ const loader = document.querySelector(".lds-ellipsis-container");
 const introForm = document.querySelector(".intro");
 // Inputs
 const nameInput = document.querySelector("#name");
-// Buttons
-const createBtn = document.querySelector(".btn--create-room");
 
 ////////////////////////////
 // CODE

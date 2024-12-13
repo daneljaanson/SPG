@@ -26,16 +26,14 @@ let isDrawing = false;
 let x = 0;
 let y = 0;
 // { playerId: [[[x, y], [...]], [...]]}
-const drawingCoords = {};
-// { drawingcoords, toolOptions }
-const guessedDrawings = [];
+let drawingCoords = {};
 // [[x, y], [...]]
 let currentStroke = [];
 
 // Possible tool and color options
 const strokeStyleArr = randomColors(8);
 strokeStyleArr.unshift("white", "black");
-const lineWidthArr = [1, 3, 5, 7, 9, 11, 13, 15];
+const lineWidthArr = [1, 3, 5, 7, 9, 11, 13, 15, 20];
 
 // Save tool and color
 const toolOptions = { lineWidth: 5, strokeStyle: "black" };
@@ -81,28 +79,9 @@ const drawLine = (context, x1, y1, x2, y2, options) => {
   context.closePath();
 };
 
-// Draw over the drawing with a red line
-const highlightDrawing = (drawerId) => {
-  drawingCoords[drawerId].forEach((strokeObj) => {
-    const modStrokeObj = {
-      coordinates: strokeObj.coordinates,
-      options: {
-        lineWidth: strokeObj.options.lineWidth + 1,
-        strokeStyle: "red",
-      },
-    };
-    drawStroke(modStrokeObj);
-  });
-};
-
 ////////////////////////////////////////////////////////
 // Exports
 ////////////////////////////////////////////////////////
-
-export const redrawPaintingPostGame = (context, rect) => {
-  // Get painting from saved
-  const painting = guessedDrawings[0];
-};
 
 // Update canvas size and redraw the painting
 export const resize = (e) => {
@@ -136,20 +115,19 @@ export const saveStroke = (playerId, strokeObj) => {
   drawingCoords[playerId].push(strokeObj);
 };
 
-// Combine correct guess info with drawing and save for game-end
-export const saveDrawing = async (drawingInfoObj, highlight = true) => {
-  const drawingsCopy = JSON.parse(JSON.stringify(drawingCoords));
-  const drawingInfoCopy = JSON.parse(JSON.stringify(drawingInfoObj));
-  const drawingObj = {
-    drawings: drawingsCopy,
-    info: drawingInfoCopy,
-  };
-  guessedDrawings.push(drawingObj);
-  if (highlight) {
-    highlightDrawing(drawingObj.info.drawerId);
-  }
-
-  return;
+// Draw over the drawing with a red line
+export const highlightDrawing = (drawerId) => {
+  if (!drawingCoords[drawerId]) return;
+  drawingCoords[drawerId].forEach((strokeObj) => {
+    const modStrokeObj = {
+      coordinates: strokeObj.coordinates,
+      options: {
+        lineWidth: strokeObj.options.lineWidth + 1,
+        strokeStyle: "red",
+      },
+    };
+    drawStroke(modStrokeObj);
+  });
 };
 
 export const deleteDrawings = (...drawerIds) => {
