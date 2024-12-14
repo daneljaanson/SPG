@@ -10,7 +10,8 @@ exports.joinRoom = (req, res) => {
   if (req.originalUrl === "/") {
     Room = new GameStateModel();
   } else {
-    Room = AppStateModel.getRoom(req.params.code);
+    Room = getRoom(req, res);
+    if (!Room) return;
   }
 
   if (!Room)
@@ -49,13 +50,24 @@ const startSSE = (res) =>
     Connection: "keep-alive",
   });
 
+// Check if room is in appstate
+const getRoom = (req, res) => {
+  const Room = AppStateModel.getRoom(req.params.code);
+  if (!Room) {
+    res.status(404).json({ status: "fail", data: "No room with that ID." });
+    return undefined;
+  }
+  return Room;
+};
 // Automatically show new players in lobby list
 exports.lobbySSE = (req, res) => {
-  // Start connection
-  startSSE(res);
-  const Room = AppStateModel.getRoom(req.params.code);
+  const Room = getRoom(req, res);
+  if (!Room) return;
   const playerId = req.params.playerId;
   Room.lobbySSEResponses[playerId] = res;
+
+  // Start connection
+  startSSE(res);
 
   // Send initial state command
   const data = {
@@ -75,7 +87,9 @@ exports.lobbySSE = (req, res) => {
 // Start SSE before game
 exports.startSSE = (req, res) => {
   // Get room
-  const Room = AppStateModel.getRoom(req.params.code);
+  const Room = getRoom(req, res);
+  if (!Room) return;
+
   // Start client side SSE
   Room.startGameSSE();
 };
@@ -83,7 +97,8 @@ exports.startSSE = (req, res) => {
 // Start game
 exports.startGame = (req, res) => {
   // Get  room
-  const Room = AppStateModel.getRoom(req.params.code);
+  const Room = getRoom(req, res);
+  if (!Room) return;
   // Send start state to server if amount of connections is the same as players
   if (
     Object.keys(Room.players).length ===
@@ -98,11 +113,13 @@ exports.startGame = (req, res) => {
 // Update picture
 exports.pictureSSE = (req, res) => {
   // Start connection
-  startSSE(res);
-
-  const Room = AppStateModel.getRoom(req.params.code);
+  const Room = getRoom(req, res);
+  if (!Room) return;
   const playerId = req.params.playerId;
   Room.pictureSSEResponses[playerId] = res;
+
+  // Start connection
+  startSSE(res);
 
   // Send initial state command
   const data = {
@@ -118,20 +135,20 @@ exports.pictureSSE = (req, res) => {
 
 // Update comments
 exports.commentSSE = (req, res) => {
-  // Start connection
-  startSSE(res);
-
-  const Room = AppStateModel.getRoom(req.params.code);
+  const Room = getRoom(req, res);
+  if (!Room) return;
   const playerId = req.params.playerId;
   Room.commentSSEResponses[playerId] = res;
 
+  // Start connection
+  startSSE(res);
+
   // Send initial state command
   const data = {
-    comment: "comment SSE init",
+    comment: "Welcome to Vidya",
   };
   setTimeout(() => {
     res.write(`data: ${JSON.stringify(data)}\n\n`);
-    Room.checkSendComment(playerId, "pasinga");
   }, 2000);
 
   req.on("close", () => {
@@ -140,12 +157,13 @@ exports.commentSSE = (req, res) => {
 };
 
 exports.stateSSE = (req, res) => {
-  // Start connection
-  startSSE(res);
-
-  const Room = AppStateModel.getRoom(req.params.code);
+  const Room = getRoom(req, res);
+  if (!Room) return;
   const playerId = req.params.playerId;
   Room.stateSSEResponses[playerId] = res;
+
+  // Start connection
+  startSSE(res);
 
   req.on("close", () => {
     res.end();
@@ -155,7 +173,8 @@ exports.stateSSE = (req, res) => {
 // Send comment update command
 exports.sendComment = (req, res) => {
   // Get user and room
-  const Room = AppStateModel.getRoom(req.params.code);
+  const Room = getRoom(req, res);
+  if (!Room) return;
   const playerId = req.params.playerId;
   // Send comment signal
   Room.checkSendComment(playerId, req.body.comment);
@@ -167,7 +186,8 @@ exports.sendComment = (req, res) => {
 
 // Send coordinates to players
 exports.sendCoords = (req, res) => {
-  const Room = AppStateModel.getRoom(req.params.code);
+  const Room = getRoom(req, res);
+  if (!Room) return;
   const playerId = req.params.playerId;
 
   // Send coordinate signal
@@ -178,7 +198,8 @@ exports.sendCoords = (req, res) => {
 
 // Refresh your word
 exports.refreshWord = (req, res) => {
-  const Room = AppStateModel.getRoom(req.params.code);
+  const Room = getRoom(req, res);
+  if (!Room) return;
   const playerId = req.params.playerId;
 
   Room.assignSendWord(playerId);
@@ -189,14 +210,13 @@ exports.refreshWord = (req, res) => {
 };
 
 exports.playAgain = (req, res) => {
-  const Room = AppStateModel.getRoom(req.params.code);
+  const Room = getRoom(req, res);
+  if (!Room) return;
   if (!Room.gameState === "round-end") {
-    res
-      .status(403)
-      .json({
-        status: "error",
-        data: { message: "Cannot be used at this time" },
-      });
+    res.status(403).json({
+      status: "error",
+      data: { message: "Cannot be used at this time" },
+    });
     return;
   }
 

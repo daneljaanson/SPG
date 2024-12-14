@@ -63,7 +63,6 @@ const nextScreen = (screenName) => {
   setTimeout(() => {
     const saveCurScreen = JSON.parse(JSON.stringify(curScreenName));
     screens[saveCurScreen].style.display = "none";
-    console.log("closed" + curScreenName);
     curScreenName = screenName;
   }, 1500);
 };
@@ -139,7 +138,7 @@ const pictureSource = () => {
   };
 
   eventSource.onerror = (error) => {
-    console.log("Picture SSE error", error);
+    console.log("Picture SSE error", error.message);
     eventSource.close();
   };
   return eventSource;
@@ -231,7 +230,7 @@ const commentSource = () => {
   };
 
   eventSource.onerror = (error) => {
-    console.log("Comment SSE error", error);
+    console.log("Comment SSE error", error.message);
     eventSource.close();
   };
   return eventSource;
@@ -289,7 +288,7 @@ const stateSource = () => {
   });
 
   eventSource.onerror = (error) => {
-    console.log("State SSE error", error);
+    console.log("State SSE error", error.message);
     eventSource.close();
   };
 

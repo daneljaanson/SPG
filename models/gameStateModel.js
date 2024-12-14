@@ -13,7 +13,7 @@ class GameState {
     this.commentSSEResponses = {};
     this.stateSSEResponses = {};
     this.gameState = "lobby";
-    this.scoreLimit = 2;
+    this.scoreLimit = 10;
     // add room to rooms list and get key
     this.roomKey = AppState.newRoom(this);
   }
@@ -108,7 +108,6 @@ class GameState {
   sendRoundStart() {
     // Top players for score keeping
     const players = this.getTopPlayers(3);
-    console.log(players);
 
     // Send to all players
     for (const [playerId, playerObj] of Object.entries(this.players)) {

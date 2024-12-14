@@ -44,6 +44,5 @@ exports.getRoom = (code) => {
 
 exports.randomWord = () => {
   const word = wordList[nodeUtilities.randInt(0, wordList.length)];
-  console.log("got word", word);
   return word;
 };
