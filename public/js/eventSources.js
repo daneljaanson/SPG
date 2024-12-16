@@ -39,6 +39,7 @@ const updatePlayerList = (playerList) => {
 
 // Hide and display screens
 const nextScreen = (screenName) => {
+  if (curScreenName === screenName) return;
   const screens = {
     intro: introScreen,
     room: roomScreen,
@@ -47,11 +48,13 @@ const nextScreen = (screenName) => {
   };
   // Hide all screens besides next and current
   // Set display to auto on cur and next screen
+  if (screenName === "room") console.log("screenname room");
   for (const [name, screenEl] of Object.entries(screens)) {
     if (screenName === name || name === curScreenName) {
       screenEl.style.display = "block";
       continue;
     }
+
     screenEl.style.display = "none";
     screenEl.style.transform = "translateX(100%)";
   }
@@ -69,7 +72,9 @@ const nextScreen = (screenName) => {
 
 // Close all sources
 const closeSources = () => {
-  Object.values(gameEventSources).forEach((eventSource) => eventSource.close());
+  Object.values(gameEventSources).forEach((eventSource) => {
+    eventSource.close();
+  });
 };
 
 // Actively update player count
@@ -78,7 +83,7 @@ export const initSource = function () {
   const [code, id] = getRoomAndPlayer();
   const eventSource = new EventSource(`/lobbySSE/${code}/${id}`);
 
-  eventSource.onmessage = (event) => {
+  eventSource.onmessage = async (event) => {
     const data = JSON.parse(event.data);
 
     // Add player name to ul
@@ -95,7 +100,7 @@ export const initSource = function () {
       drawingListEl.innerHTML = "";
       // On game start, start gameSSE
     } else if (data.status === "game-start") {
-      gameEventSources = gameSources();
+      gameEventSources = await gameSources();
       return setTimeout(() => {
         eventSource.close();
       }, 5000);
@@ -116,6 +121,11 @@ const gameSources = async function () {
   // Send confirmation that event sources started
   await fetch(`/play/${getRoomAndPlayer()[0]}/ok`);
 
+  console.log({
+    picture: eventSourcePicture,
+    comment: eventSourceComment,
+    state: eventSourceState,
+  });
   return {
     picture: eventSourcePicture,
     comment: eventSourceComment,
@@ -258,8 +268,7 @@ const stateSource = () => {
       // Resize canvas ( needs to be updated after css transition  )
       setTimeout(() => {
         drawing.resize();
-      }, 2000);
-
+      }, 1500);
       updatePlayerList(data.players);
 
       // Show role and info
@@ -281,9 +290,9 @@ const stateSource = () => {
     }
     // After game, return to lobby screen
     if (data.status === "lobby") {
-      nextScreen("lobby");
-      closeSources();
-      initSource();
+      // initsource calls room, dont uncomment
+      // nextScreen("room");
+      console.log("data status lobby");
     }
   });
 

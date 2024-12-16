@@ -20,7 +20,7 @@ const drwScreenPicture = document.querySelector("#drwScreenPicture");
 // Context
 let context;
 // Save last rect
-let curRect;
+let curRect = drwScreenPicture.getBoundingClientRect();
 
 let isDrawing = false;
 let x = 0;
@@ -33,15 +33,71 @@ let currentStroke = [];
 // Possible tool and color options
 const strokeStyleArr = randomColors(8);
 strokeStyleArr.unshift("white", "black");
+// Line widths are 1 = 1 at 300x400 resolution
+// Will get converted to frac in tool options
 const lineWidthArr = [1, 3, 5, 7, 9, 11, 13, 15, 20];
+// Minwidth is where all lineWidthArr sizes are 1 to 1 (Ex: Line width 20 brush is 20px when screen is 300px wide)
+const minWidth = 300;
+// [[x / minsize * cursize], [...]]
+// 1 at 300 width is 1px, 1 at 600 width is 2px
+let lineWidthConvertedArr = [];
 
 // Save tool and color
-const toolOptions = { lineWidth: 5, strokeStyle: "black" };
+// Must be fract, all drawing functions multiply by cur width
+const toolOptions = {
+  lineWidth: 1,
+  strokeStyle: "black",
+};
 
 ////////////////////////////////////////////////////////
 // Functions
 ////////////////////////////////////////////////////////
 
+// Convert line width array to current width
+const convertLineWidths = (screenX = curRect.width) => {
+  lineWidthConvertedArr = [];
+  lineWidthArr.forEach((width) => {
+    lineWidthConvertedArr.push(convertLineWidth(width, screenX));
+  });
+};
+
+// Convert line width from default width to new width ( OR FROM OLD WIDTH TO NEW )
+const convertLineWidth = (
+  lineWidth,
+  screenX = curRect.width,
+  oldScreenX = minWidth
+) => Number(((lineWidth / oldScreenX) * screenX).toFixed(1));
+convertLineWidths();
+
+const remakeDrawingTools = () => {
+  toolContainer.innerHTML = "";
+  lineWidthConvertedArr.forEach((toolSizeConverted, i) => {
+    const sizeRem = (toolSizeConverted / 10).toFixed(1);
+    toolContainer.innerHTML += `<div class="drwScreen__tool" data-size="${toolSizeConverted}"><span class="tool-icon" style="height:${sizeRem}rem; width:${sizeRem}rem"></span></div>`;
+  });
+  // Add event handlers to swap tool size
+  Object.values(toolContainer.children).forEach((child) => {
+    child.addEventListener("click", (e) => {
+      toolOptions.lineWidth = Number(child.getAttribute("data-size"));
+    });
+  });
+};
+
+// Tool sizes will be sent in fractions so they can be converted using current width of recipient
+const toolOptionsToFrac = (toolOptions) => {
+  const toolOptionsCopy = {
+    strokeStyle: toolOptions.strokeStyle,
+    lineWidth: toolOptions.lineWidth / curRect.width,
+  };
+  return toolOptionsCopy;
+};
+const toolOptionsToNumber = (toolOptions) => {
+  const toolOptionsCopy = {
+    strokeStyle: toolOptions.strokeStyle,
+    lineWidth: toolOptions.lineWidth * curRect.width,
+  };
+  return toolOptionsCopy;
+};
 // Translate coords to fractions of current viewport
 const coordsToFrac = (x, y) => {
   // Shorten the numbers
@@ -66,48 +122,70 @@ const redrawPainting = (drawingCoords) => {
   });
 };
 
-// 0 is already drawn, previous line
-// 1 is current position
-// 2 is destination to draw to
-const drawLine = (context, x1, y1, x2, y2, options) => {
+// 1 is last position
+// 2 is destination to draw to (cur pos)
+// const drawLine = (x1, y1, x2, y2, options) => {
+//   context.beginPath();
+//   context.strokeStyle = options.strokeStyle;
+//   context.lineWidth = options.lineWidth;
+//   context.moveTo(x1, y1);
+//   context.lineTo(x2, y2);
+//   context.stroke();
+//   context.closePath();
+// };
+
+const drawArc = (x2, y2, options) => {
+  const toolOptionsNr = toolOptionsToNumber(options);
   context.beginPath();
-  context.strokeStyle = options.strokeStyle;
-  context.lineWidth = options.lineWidth;
+  context.strokeStyle = toolOptionsNr.strokeStyle;
+  // Must be divided (along radius) to get the same diameter as line width
+  context.lineWidth = toolOptionsNr.lineWidth / 2;
+  // Fill an arc
+  context.arc(x2, y2, toolOptionsNr.lineWidth / 4, 0, 360);
+  context.closePath();
+  context.fill();
+  context.stroke();
+};
+
+// drawline local. will display what the user has drawn (more detailed, will only be displayed to the drawer)
+const drawLineLocal = (x1, y1, x2, y2, options) => {
+  const toolOptionsNr = toolOptionsToNumber(options);
+  context.strokeStyle = toolOptionsNr.strokeStyle;
+  context.lineWidth = toolOptionsNr.lineWidth / 2;
+  // Arc at end
+  context.beginPath();
+  context.arc(x2, y2, toolOptionsNr.lineWidth / 4, 0, 360);
+  context.closePath();
+  context.fill();
+  context.stroke();
+  // Draw line to next ( fast movement with arcs leaves dots, not a connected line)
+  context.beginPath();
+  context.lineWidth = toolOptionsNr.lineWidth;
   context.moveTo(x1, y1);
   context.lineTo(x2, y2);
-  context.stroke();
   context.closePath();
+  context.stroke();
 };
 
 ////////////////////////////////////////////////////////
 // Exports
 ////////////////////////////////////////////////////////
 
-// Update canvas size and redraw the painting
-export const resize = (e) => {
-  // Aspect ratio 3/4 - Also check CSS
-  drwScreenPicture.height = drwScreenContainer.clientHeight;
-  drwScreenPicture.width = (drwScreenPicture.height * 3) / 4;
-  // Save current size to variable
-  curRect = drwScreenPicture.getBoundingClientRect();
-  // Get new context for this size
-  context = drwScreenPicture.getContext("2d");
-  // Draw saved picture using new context
-  redrawPainting(drawingCoords);
-};
-
-// Resize drawing screen by js (so context would stay relevant)
-window.addEventListener("resize", resize);
-
 // Draw one mouse click cycle [[fracX, fracY],[..]]
-export const drawStroke = (strokeObj, strokeContext = context) =>
+export const drawStroke = (strokeObj) => {
+  // Draw arc at the beginning of the stroke
+  const [x0, y0] = fracToCoords(...strokeObj.coordinates[0]);
+  console.log(x0, y0);
+  drawArc(x0, y0, strokeObj.options);
+  // Draw the rest of the stroke
   strokeObj.coordinates.forEach(([fracX, fracY], i, arr) => {
     if (i !== arr.length - 1) {
       const [x, y] = fracToCoords(fracX, fracY);
       const [nextX, nextY] = fracToCoords(arr[i + 1][0], arr[i + 1][1]);
-      drawLine(strokeContext, x, y, nextX, nextY, strokeObj.options);
+      drawLineLocal(x, y, nextX, nextY, strokeObj.options);
     }
   });
+};
 
 //strokeObj is {coordinates: [], options: {}}
 export const saveStroke = (playerId, strokeObj) => {
@@ -121,14 +199,42 @@ export const highlightDrawing = (drawerId) => {
   drawingCoords[drawerId].forEach((strokeObj) => {
     const modStrokeObj = {
       coordinates: strokeObj.coordinates,
-      options: {
-        lineWidth: strokeObj.options.lineWidth + 1,
+      options: toolOptionsToFrac({
+        lineWidth: strokeObj.options.lineWidth * curRect.width + 1,
         strokeStyle: "red",
-      },
+      }),
     };
     drawStroke(modStrokeObj);
   });
 };
+
+// Update canvas size and redraw the painting
+export const resize = (e) => {
+  const oldScreenWidth = drwScreenPicture.width;
+  // Aspect ratio 3/4 - Also check CSS
+  drwScreenPicture.height = drwScreenContainer.clientHeight;
+  drwScreenPicture.width = (drwScreenPicture.height * 3) / 4;
+  // Save current size to variable
+  curRect = drwScreenPicture.getBoundingClientRect();
+  // Get new context for this size
+  context = drwScreenPicture.getContext("2d");
+  // Calculate new tool widths
+  convertLineWidths();
+  remakeDrawingTools();
+  // Update current tool width
+  toolOptions.lineWidth = convertLineWidth(
+    toolOptions.lineWidth,
+    drwScreenPicture.width,
+    oldScreenWidth
+  );
+  console.log("remade width:", toolOptions.lineWidth);
+
+  // Draw saved picture using new context
+  redrawPainting(drawingCoords);
+};
+
+// Resize drawing screen by js (so context would stay relevant)
+window.addEventListener("resize", resize);
 
 export const deleteDrawings = (...drawerIds) => {
   if (drawerIds.length === 0) drawingCoords = {};
@@ -162,17 +268,8 @@ export const drawingHandlers = () => {
   ///////////
   // Tool sizes
   // Make HTML elements
-  toolContainer.innerHTML = "";
-  lineWidthArr.forEach((toolSize, i) => {
-    const sizeRem = (toolSize / 10).toFixed(1);
-    toolContainer.innerHTML += `<div class="drwScreen__tool" data-size="${toolSize}"><span class="tool-icon" style="height:${sizeRem}rem; width:${sizeRem}rem"></span></div>`;
-  });
-  // Add event handlers to swap tool size
-  Object.values(toolContainer.children).forEach((child) => {
-    child.addEventListener("click", (e) => {
-      toolOptions.lineWidth = Number(child.getAttribute("data-size"));
-    });
-  });
+  remakeDrawingTools();
+
   /////////////////////////////////////////////////////////
   // Mouse
   drwScreenPicture.addEventListener("mousedown", (e) => {
@@ -180,10 +277,12 @@ export const drawingHandlers = () => {
     y = e.offsetY;
     isDrawing = true;
     currentStroke.push(coordsToFrac(x, y));
+    drawArc(e.offsetX, e.offsetY, toolOptionsToFrac(toolOptions));
   });
   drwScreenPicture.addEventListener("mousemove", (e) => {
     if (isDrawing) {
-      drawLine(context, x, y, e.offsetX, e.offsetY, toolOptions);
+      // drawLine( x, y, e.offsetX, e.offsetY, toolOptions);
+      drawLineLocal(x, y, e.offsetX, e.offsetY, toolOptionsToFrac(toolOptions));
       x = e.offsetX;
       y = e.offsetY;
       currentStroke.push(coordsToFrac(x, y));
@@ -198,7 +297,7 @@ export const drawingHandlers = () => {
     // Make deep copy
     const currentStrokeCopy = JSON.parse(JSON.stringify(currentStroke));
     // Send stroke
-    sendDrawingStroke(currentStrokeCopy, toolOptions);
+    sendDrawingStroke(currentStrokeCopy, toolOptionsToFrac(toolOptions));
     currentStroke = [];
   });
 
@@ -206,22 +305,22 @@ export const drawingHandlers = () => {
   // Touch
   drwScreenPicture.addEventListener("touchstart", (e) => {
     e.preventDefault();
-
     const touch = e.changedTouches[0];
     x = touch.pageX - curRect.left;
     y = touch.pageY - curRect.top;
+    drawArc(x, y, toolOptionsToFrac(toolOptions));
     currentStroke.push(coordsToFrac(x, y));
   });
   drwScreenPicture.addEventListener("touchmove", (e) => {
     e.preventDefault();
     const touch = e.changedTouches[0];
-    drawLine(
-      context,
+    // drawLine(
+    drawLineLocal(
       x,
       y,
       touch.pageX - curRect.left,
       touch.pageY - curRect.top,
-      toolOptions
+      toolOptionsToFrac(toolOptions)
     );
     x = touch.pageX - curRect.left;
     y = touch.pageY - curRect.top;
@@ -235,7 +334,7 @@ export const drawingHandlers = () => {
     // Make deep copy
     const currentStrokeCopy = JSON.parse(JSON.stringify(currentStroke));
     // Send stroke
-    sendDrawingStroke(currentStrokeCopy, toolOptions);
+    sendDrawingStroke(currentStrokeCopy, toolOptionsToFrac(toolOptions));
     currentStroke = [];
   });
 };

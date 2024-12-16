@@ -5,7 +5,6 @@ import { initSource } from "./eventSources.js";
 import { startGame, sendComment, updateWord } from "./game.js";
 import { drawingHandlers } from "./drawing.js";
 import { disableBtnFor } from "./utilities.js";
-import { returnToLobby } from "./afterGame.js";
 
 // Buttons
 const createBtn = document.querySelector(".btn--create-room");
@@ -14,12 +13,14 @@ const startBtn = document.querySelector(".btn--start-game");
 const commentBtn = document.querySelector(".game__info--btn");
 const refreshWordBtn = document.querySelector(".game__info--refresh-btn");
 const playAgainBtn = document.querySelector(".round-end--btn-again");
-const newRoomBtn = document.querySelector(".round-end--btn-new");
 
 //Inputs
 const nameInput = document.querySelector("#name");
 const codeInput = document.querySelector("#code");
 const commentInput = document.querySelector("#comment");
+
+//Labels
+const codeLabel = document.querySelector(".room__code");
 
 //////////////////////////////////////////////////////////////
 /// INTRO
@@ -78,6 +79,10 @@ refreshWordBtn.addEventListener("click", (e) => {
 //////////////////////////////////////////////////////////////
 /// ROUND-END
 
-playAgainBtn.addEventListener("click", (e) => {
-  returnToLobby();
+playAgainBtn.addEventListener("click", async (e) => {
+  if (nameInput.value && codeInput.value) {
+    disableBtnFor(1, joinBtn);
+    const success = await createRoom(codeLabel.textContent);
+    if (success) initSource();
+  }
 });

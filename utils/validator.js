@@ -76,8 +76,6 @@ exports.validate = (req, res, next) => {
       }
       continue;
     }
-    console.log(key);
-    console.log(value);
     if (key === "comment") {
       if (typeof value !== "string")
         next(new AppError("🧀 Invalid data.", 403));
@@ -88,9 +86,7 @@ exports.validate = (req, res, next) => {
         .replace(/\)/g, "")
         .replace(/\[/g, "")
         .replace(/\]/g, "");
-      console.log(revisedComment);
       req.body[key] = revisedComment;
-      console.log(req.body[key]);
       continue;
     }
     // Reject all undefined keys

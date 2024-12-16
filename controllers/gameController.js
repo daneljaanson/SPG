@@ -20,13 +20,15 @@ exports.joinRoom = (req, res) => {
       status: "fail",
       data: { message: "Game not found" },
     });
-  if (Room.gameState !== "lobby")
+  // game cannot be joined if it isnt in the round-end stage or the lobby stage
+  if (Room.gameState !== "lobby" && Room.gameState !== "round-end")
     return res.status(403).json({
       //forbidden
       status: "fail",
       data: { message: "Game has already started" },
     });
-
+  // Set state to lobby (useful if joining from round end)
+  Room.setState("lobby");
   // make new player
   const Player = new PlayerModel(req.body.name);
   // add player to state
@@ -203,24 +205,6 @@ exports.refreshWord = (req, res) => {
   const playerId = req.params.playerId;
 
   Room.assignSendWord(playerId);
-
-  res
-    .status(200)
-    .json({ status: "success", data: { message: "New word sent" } });
-};
-
-exports.playAgain = (req, res) => {
-  const Room = getRoom(req, res);
-  if (!Room) return;
-  if (!Room.gameState === "round-end") {
-    res.status(403).json({
-      status: "error",
-      data: { message: "Cannot be used at this time" },
-    });
-    return;
-  }
-
-  Room.sendGameRestart();
 
   res
     .status(200)

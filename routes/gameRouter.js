@@ -26,9 +26,6 @@ router
   .post(validator.validate, gameController.sendCoords);
 router.route("/new-word/:code/:playerId").get(gameController.refreshWord);
 
-// postgame
-router.route("/play/:code/lobby").get(gameController.playAgain);
-
 // SSE
 router.route("/lobbySSE/:code/:playerId").get(gameController.lobbySSE);
 router.route("/pictureSSE/:code/:playerId").get(gameController.pictureSSE);

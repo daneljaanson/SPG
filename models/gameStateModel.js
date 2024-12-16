@@ -28,6 +28,11 @@ class GameState {
   }
 
   setState(stateName) {
+    // Room
+    if (stateName === "lobby") {
+      this.gameState = stateName;
+      return;
+    }
     // Initialize game
     if (stateName === "game-start") {
       this.gameState = stateName;
@@ -56,11 +61,8 @@ class GameState {
     if (stateName === "round-end") {
       this.gameState = stateName;
       this.sendRoundEnd();
-      return;
-    }
-    // Game end
-    if (stateName === "lobby") {
-      this.gameState = stateName;
+      // TODO end all SSEs
+      asdasdada;
       return;
     }
   }
@@ -129,19 +131,6 @@ class GameState {
         `data: ${JSON.stringify({
           status: "round-end",
           players: this.getTopPlayers(),
-        })}\n\n`
-      );
-    });
-  }
-
-  // Moves all players to lobby screen
-  sendGameRestart() {
-    this.setState("lobby");
-    // All players must close all event sources and re-initialize initial sse
-    Object.values(this.stateSSEResponses).forEach((playerRes) => {
-      playerRes.write(
-        `data: ${JSON.stringify({
-          status: "lobby",
         })}\n\n`
       );
     });

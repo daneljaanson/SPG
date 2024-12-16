@@ -5,7 +5,14 @@ export const getRoomAndPlayer = () => {
 };
 
 export const randomColor = () => {
-  return "#" + Math.floor(Math.random() * 16777215).toString(16);
+  // return "#" + Math.floor(Math.random() * 16777215).toString(16);
+  // return "#" + ((Math.random() * 0xffffff) << 0).toString(16);
+  const x = Math.round(0xffffff * Math.random()).toString(16);
+  const y = 6 - x.length;
+  const z = "000000";
+  const z1 = z.substring(0, y);
+  const color = "#" + z1 + x;
+  return color;
 };
 
 export const randomColors = (n) => {
