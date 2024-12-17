@@ -1,6 +1,7 @@
 const PlayerModel = require("../models/playerModel");
 const GameStateModel = require("../models/gameStateModel");
 const AppStateModel = require("../models/appStateModel");
+const AppError = require("../utils/appError.js");
 
 ///////////////////////////
 // Create or join a room
@@ -10,8 +11,7 @@ exports.joinRoom = (req, res) => {
   if (req.originalUrl === "/") {
     Room = new GameStateModel();
   } else {
-    Room = getRoom(req, res);
-    if (!Room) return;
+    Room = req.params.room;
   }
 
   if (!Room)
@@ -53,18 +53,19 @@ const startSSE = (res) =>
   });
 
 // Check if room is in appstate
-const getRoom = (req, res) => {
+exports.getRoom = (req, res, next) => {
   const Room = AppStateModel.getRoom(req.params.code);
   if (!Room) {
-    res.status(404).json({ status: "fail", data: "No room with that ID." });
+    next(new AppError("No room with that ID", 404));
+    // res.status(404).json({ status: "fail", data: "No room with that ID." });
     return undefined;
   }
-  return Room;
+  req.params.room = Room;
+  next();
 };
 // Automatically show new players in lobby list
 exports.lobbySSE = (req, res) => {
-  const Room = getRoom(req, res);
-  if (!Room) return;
+  const Room = req.params.room;
   const playerId = req.params.playerId;
   Room.lobbySSEResponses[playerId] = res;
 
@@ -89,34 +90,34 @@ exports.lobbySSE = (req, res) => {
 // Start SSE before game
 exports.startSSE = (req, res) => {
   // Get room
-  const Room = getRoom(req, res);
-  if (!Room) return;
+  const Room = req.params.room;
 
   // Start client side SSE
   Room.startGameSSE();
 };
 
 // Start game
-exports.startGame = (req, res) => {
+exports.startGame = (req, res, next) => {
   // Get  room
-  const Room = getRoom(req, res);
-  if (!Room) return;
-  // Send start state to server if amount of connections is the same as players
-  if (
-    Object.keys(Room.players).length ===
-    Object.keys(Room.stateSSEResponses).length
-  ) {
-    Room.startGame();
-  }
+  const Room = req.params.room;
 
-  res.status(200).json({ status: "success", data: "event source confirmed" });
+  // Send start state to server if amount of connections is the same as players
+  // if (
+  //   Object.keys(Room.players).length ===
+  //   Object.keys(Room.stateSSEResponses).length
+  // ) {
+  const started = Room.startGame();
+  // }
+  console.log("in gamecontroller startgame");
+  if (started)
+    res.status(200).json({ status: "success", data: "event source confirmed" });
+  if (!started) next(new AppError("Game already started", 403));
 };
 
 // Update picture
 exports.pictureSSE = (req, res) => {
   // Start connection
-  const Room = getRoom(req, res);
-  if (!Room) return;
+  const Room = req.params.room;
   const playerId = req.params.playerId;
   Room.pictureSSEResponses[playerId] = res;
 
@@ -137,8 +138,7 @@ exports.pictureSSE = (req, res) => {
 
 // Update comments
 exports.commentSSE = (req, res) => {
-  const Room = getRoom(req, res);
-  if (!Room) return;
+  const Room = req.params.room;
   const playerId = req.params.playerId;
   Room.commentSSEResponses[playerId] = res;
 
@@ -159,8 +159,7 @@ exports.commentSSE = (req, res) => {
 };
 
 exports.stateSSE = (req, res) => {
-  const Room = getRoom(req, res);
-  if (!Room) return;
+  const Room = req.params.room;
   const playerId = req.params.playerId;
   Room.stateSSEResponses[playerId] = res;
 
@@ -175,8 +174,7 @@ exports.stateSSE = (req, res) => {
 // Send comment update command
 exports.sendComment = (req, res) => {
   // Get user and room
-  const Room = getRoom(req, res);
-  if (!Room) return;
+  const Room = req.params.room;
   const playerId = req.params.playerId;
   // Send comment signal
   Room.checkSendComment(playerId, req.body.comment);
@@ -188,20 +186,17 @@ exports.sendComment = (req, res) => {
 
 // Send coordinates to players
 exports.sendCoords = (req, res) => {
-  const Room = getRoom(req, res);
-  if (!Room) return;
+  const Room = req.params.room;
   const playerId = req.params.playerId;
 
   // Send coordinate signal
   Room.sendCoordinates(playerId, req.body);
-
   res.status(200).json({ status: "success", data: { message: "Coord sent" } });
 };
 
 // Refresh your word
 exports.refreshWord = (req, res) => {
-  const Room = getRoom(req, res);
-  if (!Room) return;
+  const Room = req.params.room;
   const playerId = req.params.playerId;
 
   Room.assignSendWord(playerId);

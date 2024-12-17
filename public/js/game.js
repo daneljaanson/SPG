@@ -28,7 +28,8 @@ export const startGame = async () => {
   // 127.0.0.1
   const response = await fetch(`/play/${code}`);
   if (response.status !== 200)
-    return showAlert("error", `Error: Game could not be started`);
+    return showAlert("error", `Game could not be started`);
+  console.log("response");
 };
 
 export const sendComment = async () => {
@@ -48,7 +49,11 @@ export const sendComment = async () => {
     },
   });
   if (response.status !== 200)
-    return showAlert("error", `Error: Comment could not be sent`);
+    return showAlert("error", `Comment could not be sent`);
+
+  const json = await response.json();
+  console.log("json");
+  console.log(json);
 };
 
 export const sendDrawingStroke = async (currentDrawingStroke, toolOptions) => {
@@ -69,7 +74,7 @@ export const sendDrawingStroke = async (currentDrawingStroke, toolOptions) => {
     },
   });
   if (response.status !== 200)
-    return showAlert("error", `Error: Coordinates could not be sent`);
+    return showAlert("error", `Coordinates could not be sent`);
 };
 
 // Send round end signal to server

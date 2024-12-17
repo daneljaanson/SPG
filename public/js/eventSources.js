@@ -48,7 +48,6 @@ const nextScreen = (screenName) => {
   };
   // Hide all screens besides next and current
   // Set display to auto on cur and next screen
-  if (screenName === "room") console.log("screenname room");
   for (const [name, screenEl] of Object.entries(screens)) {
     if (screenName === name || name === curScreenName) {
       screenEl.style.display = "block";

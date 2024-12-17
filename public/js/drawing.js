@@ -37,7 +37,7 @@ strokeStyleArr.unshift("white", "black");
 // Will get converted to frac in tool options
 const lineWidthArr = [1, 3, 5, 7, 9, 11, 13, 15, 20];
 // Minwidth is where all lineWidthArr sizes are 1 to 1 (Ex: Line width 20 brush is 20px when screen is 300px wide)
-const minWidth = 300;
+const minWidth = 250;
 // [[x / minsize * cursize], [...]]
 // 1 at 300 width is 1px, 1 at 600 width is 2px
 let lineWidthConvertedArr = [];
@@ -48,6 +48,9 @@ const toolOptions = {
   lineWidth: 1,
   strokeStyle: "black",
 };
+
+// Limit body size to:
+const maxBodySizeKb = 10;
 
 ////////////////////////////////////////////////////////
 // Functions
@@ -175,7 +178,6 @@ const drawLineLocal = (x1, y1, x2, y2, options) => {
 export const drawStroke = (strokeObj) => {
   // Draw arc at the beginning of the stroke
   const [x0, y0] = fracToCoords(...strokeObj.coordinates[0]);
-  console.log(x0, y0);
   drawArc(x0, y0, strokeObj.options);
   // Draw the rest of the stroke
   strokeObj.coordinates.forEach(([fracX, fracY], i, arr) => {
@@ -227,7 +229,6 @@ export const resize = (e) => {
     drwScreenPicture.width,
     oldScreenWidth
   );
-  console.log("remade width:", toolOptions.lineWidth);
 
   // Draw saved picture using new context
   redrawPainting(drawingCoords);
@@ -286,7 +287,17 @@ export const drawingHandlers = () => {
       x = e.offsetX;
       y = e.offsetY;
       currentStroke.push(coordsToFrac(x, y));
-      roleLabelEl.textContent = coordsToFrac(x, y);
+      // Send before it gets too big
+      if (currentStroke.length >= 500) {
+        // Make deep copy
+        const currentStrokeCopy = JSON.parse(JSON.stringify(currentStroke));
+        // Send stroke
+        sendDrawingStroke(currentStrokeCopy, toolOptionsToFrac(toolOptions));
+        // Also save last coordinate as first
+        currentStroke = [];
+        currentStroke.push(coordsToFrac(x, y));
+      }
+      // roleLabelEl.textContent = coordsToFrac(x, y);
     }
   });
   window.addEventListener("mouseup", (e) => {

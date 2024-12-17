@@ -85,7 +85,9 @@ exports.validate = (req, res, next) => {
         .replace(/\(/g, "")
         .replace(/\)/g, "")
         .replace(/\[/g, "")
-        .replace(/\]/g, "");
+        .replace(/\]/g, "")
+        .replace(/\</g, "")
+        .replace(/\>/g, "");
       req.body[key] = revisedComment;
       continue;
     }

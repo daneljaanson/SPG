@@ -23,8 +23,11 @@ class GameState {
   }
 
   startGame() {
-    if (this.gameState === "lobby" || this.gameState === "game-end")
+    if (this.gameState === "lobby" || this.gameState === "game-end") {
       this.setState("game-start");
+      return true;
+    }
+    return false;
   }
 
   setState(stateName) {

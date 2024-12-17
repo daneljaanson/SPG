@@ -279,6 +279,7 @@ body {
 }
 @media only screen and (max-aspect-ratio: 13/11) {
   .drwScreen {
+    width: 90vw;
     flex-direction: column;
   }
 }
@@ -298,11 +299,12 @@ body {
 .drwScreen__picture-container {
   position: relative;
   height: calc(100vh - 2 * var(--screen-padding));
-  aspect-ratio: 3/4;
+  width: min-content;
 }
 @media only screen and (max-aspect-ratio: 13/11) {
   .drwScreen__picture-container {
     height: calc(60vh - var(--screen-padding));
+    align-self: center;
   }
 }
 @media only screen and (max-aspect-ratio: 1/2) {
@@ -381,17 +383,11 @@ body {
     height: 2.5rem;
   }
 }
-.drwScreen__color--white {
-  background-color: rgb(236, 236, 236);
-}
-.drwScreen__color--black {
-  background-color: #111;
-}
 .drwScreen__color:hover {
-  background-color: rgba(0, 0, 0, 0.2);
+  opacity: 0.6;
 }
 .drwScreen__color:active {
-  background-color: rgba(255, 255, 255, 0.2);
+  opacity: 0.2;
 }
 
 .game__info {
