@@ -22,8 +22,26 @@ const commentInput = document.querySelector("#comment");
 //Labels
 const codeLabel = document.querySelector(".room__code");
 
+//Spans
+const nameCounterEl = document.querySelector(".intro__input--name-counter");
+
+//////////////////////////////////////////////////////////////
+/// VARIABLES
+const maxNameLen = 15;
+
 //////////////////////////////////////////////////////////////
 /// INTRO
+
+// Add input validator for the name
+nameCounterEl.textContent = maxNameLen - nameInput.value.length;
+nameInput.addEventListener("input", (e) => {
+  const nameLen = nameInput.value.length;
+  // Change counter text if not over max (or else returns -1)
+  if (nameLen <= maxNameLen) nameCounterEl.textContent = maxNameLen - nameLen;
+  // Insert max name when name to long
+  if (nameLen > maxNameLen)
+    nameInput.value = nameInput.value.slice(0, maxNameLen);
+});
 
 // Start game button handler
 createBtn.addEventListener("click", async (e) => {
@@ -37,9 +55,12 @@ createBtn.addEventListener("click", async (e) => {
 
 // Join game button handler
 joinBtn.addEventListener("click", async (e) => {
-  if (nameInput.value && codeInput.value) {
+  if (nameInput.value) {
     disableBtnFor(1, joinBtn);
-    const success = await createRoom(codeInput.value);
+    let code;
+    if (codeInput.value) code = codeInput.value;
+    if (!codeInput.value) code = "error";
+    const success = await createRoom(code);
     if (success) initSource();
   }
 });
@@ -80,7 +101,7 @@ refreshWordBtn.addEventListener("click", (e) => {
 /// ROUND-END
 
 playAgainBtn.addEventListener("click", async (e) => {
-  if (nameInput.value && codeInput.value) {
+  if (nameInput.value && codeLabel.textContent) {
     disableBtnFor(1, joinBtn);
     const success = await createRoom(codeLabel.textContent);
     if (success) initSource();

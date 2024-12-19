@@ -21,6 +21,7 @@ commentForm.addEventListener("submit", (e) => {
   e.preventDefault();
 });
 
+// when START GAME is pressed
 export const startGame = async () => {
   const [code, _] = getRoomAndPlayer();
   // Send start signal to server
@@ -29,7 +30,6 @@ export const startGame = async () => {
   const response = await fetch(`/play/${code}`);
   if (response.status !== 200)
     return showAlert("error", `Game could not be started`);
-  console.log("response");
 };
 
 export const sendComment = async () => {
@@ -52,8 +52,6 @@ export const sendComment = async () => {
     return showAlert("error", `Comment could not be sent`);
 
   const json = await response.json();
-  console.log("json");
-  console.log(json);
 };
 
 export const sendDrawingStroke = async (currentDrawingStroke, toolOptions) => {

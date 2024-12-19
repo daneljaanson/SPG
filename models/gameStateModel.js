@@ -13,21 +13,15 @@ class GameState {
     this.commentSSEResponses = {};
     this.stateSSEResponses = {};
     this.gameState = "lobby";
-    this.scoreLimit = 10;
+    this.scoreLimit = 4;
     // add room to rooms list and get key
     this.roomKey = AppState.newRoom(this);
   }
 
+  // Let front-end know that other SSE connections must now be established
+  // This happens when START GAME button is pressed
   startGameSSE() {
     this.writeLobby("game-start");
-  }
-
-  startGame() {
-    if (this.gameState === "lobby" || this.gameState === "game-end") {
-      this.setState("game-start");
-      return true;
-    }
-    return false;
   }
 
   setState(stateName) {
@@ -38,6 +32,9 @@ class GameState {
     }
     // Initialize game
     if (stateName === "game-start") {
+      if (this.gameState !== "lobby" && this.gameState !== "game-end")
+        return false;
+
       this.gameState = stateName;
       // Send message to players that game started
       // TODO WAIT FOR EVERYONE TO CONNECT
@@ -49,7 +46,7 @@ class GameState {
       });
       // Start round
       this.setState("round-start");
-      return;
+      return true;
     }
     // Start round
     if (stateName === "round-start") {
@@ -57,19 +54,45 @@ class GameState {
       // Set new word
       this.assignWords();
       // Send start to players
-      this.sendRoundStart();
-      return;
+      this._sendRoundStart();
+      return true;
     }
     // End round
     if (stateName === "round-end") {
       this.gameState = stateName;
-      this.sendRoundEnd();
-      // TODO end all SSEs
-      asdasdada;
-      return;
+      this._sendRoundEnd();
+      // End all SSEs
+      this.closeAllSSE();
+      // Remove all players
+      this.players = {};
+      return true;
     }
   }
 
+  // Send close signals to all and then remove them from state
+  closeAllSSE(s = 0) {
+    setTimeout(() => {
+      [
+        this.lobbySSEResponses,
+        this.pictureSSEResponses,
+        this.commentSSEResponses,
+        this.stateSSEResponses,
+      ].forEach((SSEObj) => {
+        Object.values(SSEObj).forEach((sse) => {
+          sse.write(
+            `data: ${JSON.stringify({
+              status: "close",
+            })}\n\n`
+          );
+        });
+      });
+
+      this.lobbySSEResponses = {};
+      this.pictureSSEResponses = {};
+      this.commentSSEResponses = {};
+      this.stateSSEResponses = {};
+    }, s * 1000);
+  }
   // pickNewDrawer() {
   //   // List of players with the lowest score
   //   // Returns [[playerId, timesDrawn], [...] ] ascending
@@ -110,7 +133,7 @@ class GameState {
     );
   }
 
-  sendRoundStart() {
+  _sendRoundStart() {
     // Top players for score keeping
     const players = this.getTopPlayers(3);
 
@@ -127,7 +150,7 @@ class GameState {
     }
   }
 
-  sendRoundEnd() {
+  _sendRoundEnd() {
     // Send game end signal and data to players
     Object.values(this.stateSSEResponses).forEach((playerRes) => {
       playerRes.write(
@@ -175,52 +198,48 @@ class GameState {
     });
   }
 
-  // If added score hits limit, send game end signal
-  addCheckScore(...playerIds) {
+  // If added score hits limit, return true
+  _addCheckScore(...playerIds) {
     let limitReached = false;
     // Add score to players
     playerIds.forEach((playerId) => {
       this.players[playerId].points++;
       if (this.players[playerId].points >= this.scoreLimit) limitReached = true;
     });
-    if (!limitReached) return;
-    // Find winners
-    const winnerArr = [];
-    Object.values(this.players).forEach((playerObj) => {
-      if (playerObj.score >= this.scoreLimit) winnerArr.push(playerObj);
-    });
-    // RESET GAME TO ROUND START
-    this.setState("round-end");
+    if (!limitReached) return false;
+    return true;
   }
   // Check if comment is answer and send it to all
   checkSendComment(guesserCommenterId, comment) {
+    // Variables
     const commentLower = comment.toLowerCase();
-    let isCorrect = false;
     // Send response with status "correct-guess" and drawer's id (to delete image)
     let status = "comment received";
     let players = [];
     // Winner names to display winners in client
     const winners = { guesser: "", drawer: "", drawerId: "", word: "" };
+    let isWin = false;
+
+    // Find if guessed word matches a player's word
     for (const [playerId, playerObj] of Object.entries(this.players)) {
       // if guess matches, give point to guesser and drawer
       // TODO add later vvvvvvvvvvv
       //&& playerId !== guesserCommenterId
       if (playerObj.word === commentLower) {
-        this.addCheckScore(playerId, guesserCommenterId);
         winners.guesser = this.players[guesserCommenterId].name;
         winners.drawer = this.players[playerId].name;
         winners.drawerId = nodeUtilities.publicId(playerId);
         winners.word = this.players[playerId].word;
-        isCorrect = true;
-        this.assignSendWord(playerId);
+        status = "correct-guess";
+        // Check if the game is won
+        isWin = this._addCheckScore(playerId, guesserCommenterId);
+        // If game isnt won, send a new word to the drawer
+        if (!isWin) this.assignSendWord(playerId);
         break;
       }
     }
-    if (isCorrect) {
-      status = "correct-guess";
-      players = this.getTopPlayers(3);
-    }
-
+    players = this.getTopPlayers(3);
+    // Send either regular comment or winners
     Object.values(this.commentSSEResponses).forEach((playerRes) => {
       playerRes.write(
         `data: ${JSON.stringify({
@@ -232,6 +251,9 @@ class GameState {
         })}\n\n`
       );
     });
+
+    // RESET GAME TO ROUND START
+    if (isWin) this.setState("round-end");
   }
 
   // Send public ids with painting strokes ( to differentiate between paintings )

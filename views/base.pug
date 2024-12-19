@@ -17,12 +17,13 @@ html(lang="en")
               .intro__input
                 label.intro__label Name
                 input(type="text" name="name" id="name" required)
+                span.intro__input--name-counter 
               .intro__input
                 label.intro__label Room code
                 input.intro_room_code_input(type="text" name="code" id="code")
               .intro__submit
-                input.btn.btn--join-room(type="submit" value="Join") 
-                input.btn.btn--create-room(type="submit" value="Create") 
+                button.btn.btn--join-room(type="submit" )  Join room
+                button.btn.btn--create-room(type="submit" ) Create room
 
         .container.container--room
           .container-inner

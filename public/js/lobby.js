@@ -25,6 +25,7 @@ introForm.addEventListener("submit", (e) => {
 
 // Send request to make room / establish lobby SSE, show lobby
 export const createRoom = async function (code = "") {
+  if (code === "error") return showAlert("error", "Enter the room key");
   const codeUpper = code.toUpperCase();
   //////////////////////////////////
   // Send room start to server

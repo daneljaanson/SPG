@@ -25,7 +25,6 @@ const roleLabelEl = document.querySelector(".drwScreen__picture--role");
 // Text
 const infoTextEl = document.querySelector(".game__info--info-text");
 
-("use strict");
 let curScreenName = "intro";
 let gameEventSources;
 
@@ -69,13 +68,6 @@ const nextScreen = (screenName) => {
   }, 1500);
 };
 
-// Close all sources
-const closeSources = () => {
-  Object.values(gameEventSources).forEach((eventSource) => {
-    eventSource.close();
-  });
-};
-
 // Actively update player count
 export const initSource = function () {
   // Send room code and player id
@@ -96,7 +88,9 @@ export const initSource = function () {
     } else if (data.status === "init") {
       nextScreen("room");
       // Delete old pictures
-      drawingListEl.innerHTML = "";
+      setTimeout(() => {
+        drawingListEl.innerHTML = "";
+      }, 2000);
       // On game start, start gameSSE
     } else if (data.status === "game-start") {
       gameEventSources = await gameSources();
@@ -139,6 +133,10 @@ const pictureSource = () => {
 
   eventSource.onmessage = (event) => {
     const data = JSON.parse(event.data);
+    // Close when close signal
+    if (data.status === "close") {
+      eventSource.close();
+    }
     //  display coords
     if (data.strokeObj) {
       drawing.saveStroke(data.id, data.strokeObj);
@@ -160,6 +158,10 @@ const commentSource = () => {
 
   eventSource.onmessage = (event) => {
     const data = JSON.parse(event.data);
+    // Close when close signal
+    if (data.status === "close") {
+      eventSource.close();
+    }
     // Add new comment to ul
     const commenterName = data.name ? `<strong>${data.name}:</strong>` : "";
     commentListEl.innerHTML += `<li>${commenterName} ${data.comment}</li>`;
@@ -167,7 +169,7 @@ const commentSource = () => {
     // If correct guess, display something
     if (data.status === "correct-guess") {
       // Add success alert to messages
-      commentListEl.innerHTML += `<li>- ${data.winners.guesser} guessed ${data.winners.drawer}'s drawing! ${data.winners.drawer} drew ${data.winners.word} -</li>`;
+      commentListEl.innerHTML += `<li>- <strong>${data.winners.guesser} guessed ${data.winners.word} </strong>-</li>`;
       ////////////////////////////
       /// MAKE NEW ALERT ELEMENT
 
@@ -202,15 +204,33 @@ const commentSource = () => {
       // Add saved image to round-end list. Converts canvas drawing to png
       drwScreenPicture.toBlob((blob) => {
         // Create new elements
+        // Div element
+        const containerDiv = document.createElement("div");
+        containerDiv.classList.add("round-end__drawing-container");
         const newDiv = document.createElement("div");
         newDiv.classList.add("round-end__drawing");
 
+        // Text element
+        const pTemplate = `
+        <div class="round-end__drawing--text-container">
+          <ul class="round-end__drawing--list round-end__drawing--list-1">
+           <li>Word:</li>
+           <li>Drawer:</li>
+           <li>Guesser:</li>
+          </ul>
+          <ul class="round-end__drawing--list round-end__drawing--list-2">
+           <li>${data.winners.word}</li>
+           <li>${data.winners.drawer}</li>
+           <li>${data.winners.guesser}</li>
+          </ul>
+        </div>`;
+
         const newP = document.createElement("p");
-        newP.textContent = `Word: ${data.winners.word} by ${data.winners.drawer}. Guessed by: ${data.winners.guesser}`;
+        newP.textContent = `Word: ${data.winners.word}\n${data.winners.drawer}. Guessed by\n${data.winners.guesser}`;
         newP.classList.add("round-end__drawing--text");
 
         ////////////////////////////
-        // Make and configure image
+        // Make and configure image to display after round
         const newImg = document.createElement("img");
         newImg.classList.add("round-end__drawing--img");
 
@@ -222,11 +242,16 @@ const commentSource = () => {
         //   URL.revokeObjectURL(url);
         // };
         newImg.src = url;
-
+        ////////////////////////////
         // Insert elements to dom
         newDiv.append(newImg);
-        newDiv.append(newP);
-        drawingListEl.append(newDiv);
+        containerDiv.append(newDiv);
+        drawingListEl.append(containerDiv);
+
+        // Get last image container
+        const elementList = document.querySelectorAll(".round-end__drawing");
+        const containerDivEl = elementList[elementList.length - 1];
+        containerDivEl.insertAdjacentHTML("afterend", pTemplate);
       });
 
       ////////////////////////////
@@ -251,6 +276,10 @@ const stateSource = () => {
 
   eventSource.addEventListener("message", (event) => {
     const data = JSON.parse(event.data);
+    // Close when close signal
+    if (data.status === "close") {
+      eventSource.close();
+    }
     if (data.status === "new-word") {
       infoTextEl.textContent = `${data.word}`;
       setTimeout(() => {

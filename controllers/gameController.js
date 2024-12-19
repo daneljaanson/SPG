@@ -88,15 +88,20 @@ exports.lobbySSE = (req, res) => {
 };
 
 // Start SSE before game
+// at /play/:code/
 exports.startSSE = (req, res) => {
   // Get room
   const Room = req.params.room;
-
   // Start client side SSE
   Room.startGameSSE();
+  // Close request
+  res
+    .status(200)
+    .json({ status: "success", data: "start game signal received" });
 };
 
 // Start game
+// at /play/:code/ok/ -- Sent automatically from eventSources.js
 exports.startGame = (req, res, next) => {
   // Get  room
   const Room = req.params.room;
@@ -106,11 +111,12 @@ exports.startGame = (req, res, next) => {
   //   Object.keys(Room.players).length ===
   //   Object.keys(Room.stateSSEResponses).length
   // ) {
-  const started = Room.startGame();
+  const started = Room.setState("game-start");
   // }
-  console.log("in gamecontroller startgame");
   if (started)
-    res.status(200).json({ status: "success", data: "event source confirmed" });
+    res
+      .status(200)
+      .json({ status: "success", data: "event sources confirmed" });
   if (!started) next(new AppError("Game already started", 403));
 };
 

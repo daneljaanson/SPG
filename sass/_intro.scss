@@ -10,11 +10,19 @@
     display: grid;
     grid-template-columns: 9rem 15rem;
     gap: 1rem;
+    position: relative;
 
     justify-content: center;
     align-items: center;
 
     text-align: right;
+
+    &--name-counter {
+      position: absolute;
+      top: 50%;
+      right: 50%;
+      transform: translate(12rem, -50%);
+    }
   }
 
   &__label {

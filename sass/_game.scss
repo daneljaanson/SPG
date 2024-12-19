@@ -54,6 +54,7 @@
     position: relative;
     height: calc(100vh - (2 * var(--screen-padding)));
     width: min-content;
+    aspect-ratio: 3/4;
 
     // height: 70vh;
     @include m.respond(breakpoint-1) {

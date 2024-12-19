@@ -24,15 +24,31 @@
     max-height: 50rem;
     overflow: hidden;
     overflow-x: scroll;
+    gap: 1rem;
   }
   &__drawing {
+    &-container {
+      border: 1px solid #000;
+      padding: 1rem;
+    }
     &--img {
       user-select: none;
       max-height: 30rem;
     }
-    &--text {
-      padding: 0.5rem;
+    &--text-container {
       font-size: 1.6rem;
+
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+    }
+    &--list {
+      list-style: none;
+      &-1 {
+        text-align: right;
+      }
+      &-2 {
+        text-align: left;
+      }
     }
   }
 }

@@ -16,21 +16,21 @@ router
   .route("/join/:code")
   .post(validator.validate, gameController.getRoom, gameController.joinRoom);
 
-// lobby
-router
-  .route("/play/:code/ok")
-  .get(gameController.getRoom, gameController.startGame);
-
 // game
+
+// When START GAME button is pressed
 router
   .route("/play/:code")
   .get(gameController.getRoom, gameController.startSSE);
+// When comment button is pressed
 router
   .route("/comment/:code/:playerId")
   .post(validator.validate, gameController.getRoom, gameController.sendComment);
+// When something is drawn
 router
   .route("/xy/:code/:playerId")
   .post(validator.validate, gameController.getRoom, gameController.sendCoords);
+// When refresh word button is pressed
 router
   .route("/new-word/:code/:playerId")
   .get(gameController.getRoom, gameController.refreshWord);
@@ -48,5 +48,10 @@ router
 router
   .route("/stateSSE/:code/:playerId")
   .get(gameController.getRoom, gameController.stateSSE);
+
+// When all game SSEs are established, the OK is sent here. Automatic from front-end event source
+router
+  .route("/play/:code/ok")
+  .get(gameController.getRoom, gameController.startGame);
 
 module.exports = router;

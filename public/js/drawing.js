@@ -37,7 +37,7 @@ strokeStyleArr.unshift("white", "black");
 // Will get converted to frac in tool options
 const lineWidthArr = [1, 3, 5, 7, 9, 11, 13, 15, 20];
 // Minwidth is where all lineWidthArr sizes are 1 to 1 (Ex: Line width 20 brush is 20px when screen is 300px wide)
-const minWidth = 250;
+const minWidth = 300;
 // [[x / minsize * cursize], [...]]
 // 1 at 300 width is 1px, 1 at 600 width is 2px
 let lineWidthConvertedArr = [];

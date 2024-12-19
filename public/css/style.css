@@ -120,9 +120,16 @@ body {
   display: grid;
   grid-template-columns: 9rem 15rem;
   gap: 1rem;
+  position: relative;
   justify-content: center;
   align-items: center;
   text-align: right;
+}
+.intro__input--name-counter {
+  position: absolute;
+  top: 50%;
+  right: 50%;
+  transform: translate(12rem, -50%);
 }
 .intro__label {
   font-size: 1.8rem;
@@ -300,6 +307,7 @@ body {
   position: relative;
   height: calc(100vh - 2 * var(--screen-padding));
   width: min-content;
+  aspect-ratio: 3/4;
 }
 @media only screen and (max-aspect-ratio: 13/11) {
   .drwScreen__picture-container {
@@ -553,14 +561,29 @@ body {
   max-height: 50rem;
   overflow: hidden;
   overflow-x: scroll;
+  gap: 1rem;
+}
+.round-end__drawing-container {
+  border: 1px solid #000;
+  padding: 1rem;
 }
 .round-end__drawing--img {
   user-select: none;
   max-height: 30rem;
 }
-.round-end__drawing--text {
-  padding: 0.5rem;
+.round-end__drawing--text-container {
   font-size: 1.6rem;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+.round-end__drawing--list {
+  list-style: none;
+}
+.round-end__drawing--list-1 {
+  text-align: right;
+}
+.round-end__drawing--list-2 {
+  text-align: left;
 }
 
 /*# sourceMappingURL=style.css.map */
