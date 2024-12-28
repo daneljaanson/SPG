@@ -113,12 +113,6 @@ const gameSources = async function () {
 
   // Send confirmation that event sources started
   await fetch(`/play/${getRoomAndPlayer()[0]}/ok`);
-
-  console.log({
-    picture: eventSourcePicture,
-    comment: eventSourceComment,
-    state: eventSourceState,
-  });
   return {
     picture: eventSourcePicture,
     comment: eventSourceComment,
@@ -257,6 +251,10 @@ const commentSource = () => {
       ////////////////////////////
       /// HIGHLIGHT DRAWING
       drawing.highlightDrawing(data.winners.drawerId);
+      // Delete after highlight
+      setTimeout(() => {
+        drawing.deleteDrawings(data.winners.drawerId);
+      }, 1000);
     }
 
     // Scroll to end
@@ -320,7 +318,6 @@ const stateSource = () => {
     if (data.status === "lobby") {
       // initsource calls room, dont uncomment
       // nextScreen("room");
-      console.log("data status lobby");
     }
   });
 

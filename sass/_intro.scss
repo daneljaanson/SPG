@@ -9,7 +9,7 @@
   &__input {
     display: grid;
     grid-template-columns: 9rem 15rem;
-    gap: 1rem;
+    gap: 2rem;
     position: relative;
 
     justify-content: center;
@@ -27,6 +27,8 @@
 
   &__label {
     font-size: 1.8rem;
+    display: block;
+    width: 10rem;
   }
 
   &__submit {

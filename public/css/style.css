@@ -119,7 +119,7 @@ body {
 .intro__input {
   display: grid;
   grid-template-columns: 9rem 15rem;
-  gap: 1rem;
+  gap: 2rem;
   position: relative;
   justify-content: center;
   align-items: center;
@@ -133,6 +133,8 @@ body {
 }
 .intro__label {
   font-size: 1.8rem;
+  display: block;
+  width: 10rem;
 }
 .intro__submit {
   display: flex;
@@ -486,6 +488,7 @@ body {
   .game__info--player-list li {
     flex-direction: row;
     align-items: center;
+    justify-content: space-between;
   }
 }
 .game__info--player-list span {

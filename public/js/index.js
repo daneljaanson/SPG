@@ -32,6 +32,9 @@ const maxNameLen = 15;
 //////////////////////////////////////////////////////////////
 /// INTRO
 
+// Code input empty
+codeInput.value = "";
+
 // Add input validator for the name
 nameCounterEl.textContent = maxNameLen - nameInput.value.length;
 nameInput.addEventListener("input", (e) => {

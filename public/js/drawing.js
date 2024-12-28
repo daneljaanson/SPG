@@ -337,6 +337,16 @@ export const drawingHandlers = () => {
     y = touch.pageY - curRect.top;
     // Save for resize
     currentStroke.push(coordsToFrac(x, y));
+    // Send before it gets too big
+    if (currentStroke.length >= 500) {
+      // Make deep copy
+      const currentStrokeCopy = JSON.parse(JSON.stringify(currentStroke));
+      // Send stroke
+      sendDrawingStroke(currentStrokeCopy, toolOptionsToFrac(toolOptions));
+      // Also save last coordinate as first
+      currentStroke = [];
+      currentStroke.push(coordsToFrac(x, y));
+    }
   });
   drwScreenPicture.addEventListener("touchend", (e) => {
     e.preventDefault();

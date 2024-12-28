@@ -33,7 +33,6 @@ exports.joinRoom = (req, res) => {
   const Player = new PlayerModel(req.body.name);
   // add player to state
   Room.addPlayer(Player);
-
   // send response with "cookie" to render the lobby
   res.status(200).json({
     status: "success",
@@ -102,22 +101,20 @@ exports.startSSE = (req, res) => {
 
 // Start game
 // at /play/:code/ok/ -- Sent automatically from eventSources.js
+// Gets called after someone initializes SSEs
 exports.startGame = (req, res, next) => {
   // Get  room
   const Room = req.params.room;
-
   // Send start state to server if amount of connections is the same as players
-  // if (
-  //   Object.keys(Room.players).length ===
-  //   Object.keys(Room.stateSSEResponses).length
-  // ) {
-  const started = Room.setState("game-start");
-  // }
-  if (started)
-    res
-      .status(200)
-      .json({ status: "success", data: "event sources confirmed" });
-  if (!started) next(new AppError("Game already started", 403));
+  let started = true;
+  if (
+    Object.keys(Room.players).length ===
+    Object.keys(Room.stateSSEResponses).length
+  ) {
+    started = Room.setState("game-start");
+  }
+  if (!started) return next(new AppError("Game already started", 403));
+  res.status(200).json({ status: "success", data: "event sources confirmed" });
 };
 
 // Update picture
@@ -168,6 +165,7 @@ exports.stateSSE = (req, res) => {
   const Room = req.params.room;
   const playerId = req.params.playerId;
   Room.stateSSEResponses[playerId] = res;
+  console.log("player id state sse", playerId);
 
   // Start connection
   startSSE(res);
