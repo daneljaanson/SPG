@@ -175,6 +175,11 @@ class GameState {
     return playerList;
   }
 
+  // Make list of player Ids
+  getPlayerIds() {
+    return Object.keys(this.players);
+  }
+
   // Return array [[playerName, points], [...] ] descending
   getTopPlayers(n) {
     const topPlayers = Object.values(this.players)

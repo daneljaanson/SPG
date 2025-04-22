@@ -1,14 +1,16 @@
 "use strict";
 
-import { createRoom } from "./lobby.js";
+import { createRoom, rejoinRoom } from "./lobby.js";
 import { initSource } from "./eventSources.js";
 import { startGame, sendComment, updateWord } from "./game.js";
 import { drawingHandlers } from "./drawing.js";
 import { disableBtnFor } from "./utilities.js";
+import { getRoomAndPlayer } from "./utilities.js";
 
 // Buttons
 const createBtn = document.querySelector(".btn--create-room");
 const joinBtn = document.querySelector(".btn--join-room");
+const rcBtn = document.querySelector(".btn--reconnect-room");
 const startBtn = document.querySelector(".btn--start-game");
 const commentBtn = document.querySelector(".game__info--btn");
 const refreshWordBtn = document.querySelector(".game__info--refresh-btn");
@@ -66,6 +68,13 @@ joinBtn.addEventListener("click", async (e) => {
     const success = await createRoom(code);
     if (success) initSource();
   }
+});
+
+// Reconnect button handler
+rcBtn.addEventListener("click", async (e) => {
+  disableBtnFor(1, rcBtn);
+  const [code, id] = getRoomAndPlayer();
+  const success = await rejoinRoom(code, id);
 });
 
 //////////////////////////////////////////////////////////////

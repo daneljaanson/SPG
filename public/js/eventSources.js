@@ -28,6 +28,25 @@ const infoTextEl = document.querySelector(".game__info--info-text");
 let curScreenName = "intro";
 let gameEventSources;
 
+const roundStart = (data) => {
+  // Enable game screen
+  // drwScreenPicture.style.userSelect = "auto";
+  drwScreenPicture.style.pointerEvents = "auto";
+  // Move to game screen
+  nextScreen("game");
+
+  // Resize canvas ( needs to be updated after css transition  )
+  setTimeout(() => {
+    drawing.resize();
+  }, 1500);
+  updatePlayerList(data.players);
+
+  // Show role and info
+  roleLabelEl.textContent = data.role;
+  infoTextEl.textContent = `${data.word}`;
+  // Start guessing timer
+};
+
 const updatePlayerList = (playerList) => {
   // Add top players and scores to player list
   playerListGameEl.innerHTML = "";
@@ -106,11 +125,13 @@ export const initSource = function () {
   };
 };
 
-const gameSources = async function () {
+export const gameSources = async function (rcData = "") {
+  console.log("in-sources");
   const eventSourceState = stateSource();
   const eventSourcePicture = pictureSource();
   const eventSourceComment = commentSource();
 
+  if (rcData) roundStart(rcData);
   // Send confirmation that event sources started
   await fetch(`/play/${getRoomAndPlayer()[0]}/ok`);
   return {
@@ -285,22 +306,7 @@ const stateSource = () => {
       }, 1000);
     }
     if (data.status === "round-start") {
-      // Enable game screen
-      // drwScreenPicture.style.userSelect = "auto";
-      drwScreenPicture.style.pointerEvents = "auto";
-      // Move to game screen
-      nextScreen("game");
-
-      // Resize canvas ( needs to be updated after css transition  )
-      setTimeout(() => {
-        drawing.resize();
-      }, 1500);
-      updatePlayerList(data.players);
-
-      // Show role and info
-      roleLabelEl.textContent = data.role;
-      infoTextEl.textContent = `${data.word}`;
-      // Start guessing timer
+      roundStart(data);
     }
     if (data.status === "round-end") {
       nextScreen("afterRound");

@@ -1,6 +1,8 @@
 "use strict";
 
 import { showAlert } from "./alerts.js";
+import { gameSources } from "./eventSources.js";
+
 ////////////////////////////
 // ELEMENTS
 ////////////////////////////
@@ -57,7 +59,9 @@ export const createRoom = async function (code = "") {
 
   // Add room key to HTML
   codeLabel.textContent = json.data.code;
-  codeLabel.setAttribute("data-player", json.data.id);
+  // Add room key and id to local storage
+  localStorage.setItem("id", json.data.id);
+  localStorage.setItem("code", json.data.code);
 
   // Hide loader
   loader.style.opacity = 0;
@@ -70,4 +74,30 @@ export const createRoom = async function (code = "") {
   lobbyContainer.style.userSelect = "auto";
 
   return true;
+};
+
+// Send saved id and code to rejoin
+export const rejoinRoom = async function (code, id) {
+  if (code === "" || id === "") return;
+
+  // See if player exists in room
+  const response = await fetch(`/rejoin/${code}/${id}`);
+
+  // ERRORS
+  if (response.status === 403 || response.status === 404) {
+    const json = await response.json();
+    showAlert("error", `Error: ${json.data.message}`);
+    return false;
+  }
+
+  if (response.status !== 201 && response.status !== 200) {
+    showAlert("error", `Status code: ${response.status}`);
+    return false;
+  }
+
+  // Join room
+  const json = await response.json();
+  if (json.status === "success") {
+    await gameSources(json.data);
+  }
 };

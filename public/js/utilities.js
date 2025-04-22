@@ -1,7 +1,12 @@
 // CODE LABEL CONTAINS PLAYER ID AND ROOM CODE
 export const getRoomAndPlayer = () => {
-  const codeLabel = document.querySelector(".room__code");
-  return [codeLabel.textContent, codeLabel.getAttribute("data-player")];
+  // const codeLabel = document.querySelector(".room__code");
+  // return [codeLabel.textContent, codeLabel.getAttribute("data-player")];
+  const getCode =
+    localStorage.getItem("code") === null ? "" : localStorage.getItem("code");
+  const getId =
+    localStorage.getItem("id") === null ? "" : localStorage.getItem("id");
+  return [getCode, getId];
 };
 
 export const randomColor = () => {

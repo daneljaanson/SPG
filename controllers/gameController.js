@@ -43,6 +43,27 @@ exports.joinRoom = (req, res) => {
   });
 };
 
+exports.rejoinRoom = (req, res) => {
+  console.log("rejoin room");
+  const playerIsIn = req.params.room
+    .getPlayerIds()
+    .includes(req.params.playerId);
+  if (!playerIsIn)
+    return res
+      .status(404)
+      .json({ status: "fail", data: "player not found in game" });
+
+  // Get the same info as with round-start
+  const players = req.params.room.getTopPlayers(3);
+  const data = {
+    status: "success",
+    players,
+    word: req.params.room.players[req.params.playerId].word,
+  };
+
+  if (playerIsIn) res.status(200).json({ status: "success", data });
+};
+
 // SSE Start
 const startSSE = (res) =>
   res.writeHead(200, {

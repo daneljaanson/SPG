@@ -16,6 +16,10 @@ router
   .route("/join/:code")
   .post(validator.validate, gameController.getRoom, gameController.joinRoom);
 
+router
+  .route("/rejoin/:code/:playerId")
+  .get(validator.validate, gameController.getRoom, gameController.rejoinRoom);
+
 // game
 
 // When START GAME button is pressed
